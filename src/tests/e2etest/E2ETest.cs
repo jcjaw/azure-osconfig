@@ -103,7 +103,7 @@ namespace E2eTesting
                 string tempFileCommand = "temp_file=`sudo mktemp`";
                 string tarCommand = "sudo tar -cvzf $temp_file osconfig*.log";
                 string curlCommand = String.Format("curl -X PUT -T $temp_file -H \"x-ms-date: $(date -u)\" -H \"x-ms-blob-type: BlockBlob\" \"{1}\"", fileName, fullURL);
-                string commandToPerform = String.Format("cd /var/log && {0} && {1} && {2}", tempFileCommand, tarCommand, curlCommand);
+                string commandToPerform = String.Format("kill -9 `pidof top` && cd /var/log && {0} && {1} && {2}", tempFileCommand, tarCommand, curlCommand);
 
                 var result = PerformCommandViaCommandRunner(commandToPerform);
                 if (!result.Item1)

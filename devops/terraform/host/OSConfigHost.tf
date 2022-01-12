@@ -174,7 +174,8 @@ resource "azurerm_linux_virtual_machine" "osconfigvm" {
         "sudo sed -i '/\"FullLogging\"/c\\  \"FullLogging\": 1,' /etc/osconfig/osconfig.json",
         var.vm_post_osconfig_install_script,
         "sudo systemctl daemon-reload",
-        "sudo systemctl start osconfig"
+        "sudo systemctl start osconfig",
+        "sudo top -b -p `pidof osconfig` > /var/log/osconfig.top.log &"
         ]
     }
 
