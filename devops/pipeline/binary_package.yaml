@@ -37,7 +37,7 @@ strategy:
       containerImage: ubuntu20.04-dev-arm:latest
       platform: linux/arm/v7
       coverage: false
-      ignoreTestFailures: true
+      ignoreTestFailures: false
     Packaging ubuntu2004-arm64:
       variant: ubuntu20.04
       arch: arm64
