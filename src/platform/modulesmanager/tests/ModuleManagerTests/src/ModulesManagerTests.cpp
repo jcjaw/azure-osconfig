@@ -241,6 +241,8 @@ namespace Tests
         EXPECT_CALL(*mockModule, CallMmiGet(StrEq(componentName), StrEq(objectName), _, _)).Times(1).WillOnce(DoAll(SetArgPointee<2>(value), SetArgPointee<3>(strlen(value)), Return(MMI_OK)));
 
         EXPECT_EQ(MPI_OK, moduleManager->MpiGetReported(&payload, &payloadSizeBytes));
+
+        std::string payloadString(payload, payloadSizeBytes);
         EXPECT_TRUE(JSON_EQ(expected, payload));
     }
 
@@ -274,6 +276,8 @@ namespace Tests
         EXPECT_CALL(*mockModule_2, CallMmiGet(StrEq(componentName_2), StrEq(objectName_2), _, _)).Times(1).WillOnce(DoAll(SetArgPointee<2>(value_2), SetArgPointee<3>(strlen(value_2)), Return(MMI_OK)));
 
         EXPECT_EQ(MPI_OK, moduleManager->MpiGetReported(&payload, &payloadSizeBytes));
+
+        std::string payloadString(payload, payloadSizeBytes);
         EXPECT_TRUE(JSON_EQ(expected, payload));
     }
 
