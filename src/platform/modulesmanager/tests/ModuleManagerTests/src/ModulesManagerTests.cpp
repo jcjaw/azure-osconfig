@@ -243,7 +243,7 @@ namespace Tests
         EXPECT_EQ(MPI_OK, moduleManager->MpiGetReported(&payload, &payloadSizeBytes));
 
         std::string payloadString(payload, payloadSizeBytes);
-        EXPECT_TRUE(JSON_EQ(expected, payload));
+        EXPECT_TRUE(JSON_EQ(expected, payloadString));
     }
 
     TEST_F(ModuleManagerTests, MpiGetReported_MultipleComponents)
@@ -278,7 +278,7 @@ namespace Tests
         EXPECT_EQ(MPI_OK, moduleManager->MpiGetReported(&payload, &payloadSizeBytes));
 
         std::string payloadString(payload, payloadSizeBytes);
-        EXPECT_TRUE(JSON_EQ(expected, payload));
+        EXPECT_TRUE(JSON_EQ(expected, payloadString));
     }
 
     TEST_F(ModuleManagerTests, MpiGetReported_MultipleObjects)
