@@ -303,7 +303,9 @@ namespace Tests
         EXPECT_CALL(*mockModule, CallMmiGet(StrEq(componentName), StrEq(objectName_2), _, _)).Times(1).WillOnce(DoAll(SetArgPointee<2>(value_2), SetArgPointee<3>(strlen(value_2)), Return(MMI_OK)));
 
         EXPECT_EQ(MPI_OK, moduleManager->MpiGetReported(&payload, &payloadSizeBytes));
-        EXPECT_TRUE(JSON_EQ(expected, payload));
+
+        std::string payloadString(payload, payloadSizeBytes);
+        EXPECT_TRUE(JSON_EQ(expected, payloadString));
     }
 
     TEST_F(ModuleManagerTests, MpiGetReported_InvalidPayload)
@@ -340,7 +342,9 @@ namespace Tests
         ASSERT_EQ(MPI_OK, moduleManager->LoadModules(g_moduleDir, g_configJsonMultipleReported));
         EXPECT_EQ(MPI_OK, moduleManager->MpiSetDesired((MPI_JSON_STRING)g_localPayload, strlen(g_localPayload)));
         EXPECT_EQ(MPI_OK, moduleManager->MpiGetReported(&payload, &payloadSizeBytes));
-        EXPECT_TRUE(JSON_EQ(payload, g_localPayload));
+
+        std::string payloadString(payload, payloadSizeBytes);
+        EXPECT_TRUE(JSON_EQ(payloadString, g_localPayload));
     }
 
     TEST_F(ModuleManagerTests, LoadModules_InvalidDirectory)
