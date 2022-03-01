@@ -116,7 +116,6 @@ stages:
       workingDirectory: $(Build.SourcesDirectory)/esrpclient
       displayName: Validate ESRP signing job
 
-   - publish: $(Build.SourcesDirectory)/esrpclient/Output/
+   - publish: $(Build.SourcesDirectory)/esrpclient/Output
       displayName: Publishing signed packages
       artifact: OSConfig_$(Build.BuildNumber)_SIGNED
-      condition: eq(${{ parameters.publishArtifact }}, true) 
