@@ -22,46 +22,46 @@ trigger:
 pr: none
 
 stages:
-- template: stages/source_build.yaml
-  parameters:
-    containerPath: $(CONTAINER_REGISTRY)/ubuntu20.04-dev-amd64:latest
-    publishArtifact: true
+# - template: stages/source_build.yaml
+#   parameters:
+#     containerPath: $(CONTAINER_REGISTRY)/ubuntu20.04-dev-amd64:latest
+#     publishArtifact: true
 
-- template: stages/binary_build.yaml
-  parameters:
-    variantName: ubuntu20.04
-    friendlyVariantName: ubuntu2004
-    architecture: amd64_debug
-    containerPath: $(CONTAINER_REGISTRY)/ubuntu20.04-dev-amd64:latest
-    platform: linux/amd64
-    performCoverage: true
-    ignoreTestFailures: true
-    publishArtifact: false
+# - template: stages/binary_build.yaml
+#   parameters:
+#     variantName: ubuntu20.04
+#     friendlyVariantName: ubuntu2004
+#     architecture: amd64_debug
+#     containerPath: $(CONTAINER_REGISTRY)/ubuntu20.04-dev-amd64:latest
+#     platform: linux/amd64
+#     performCoverage: true
+#     ignoreTestFailures: true
+#     publishArtifact: false
 
-- template: stages/binary_build.yaml
-  parameters:
-    variantName: ubuntu20.04
-    friendlyVariantName: ubuntu2004
-    architecture: amd64
-    containerPath: $(CONTAINER_REGISTRY)/ubuntu20.04-dev-amd64:latest
-    platform: linux/amd64
+# - template: stages/binary_build.yaml
+#   parameters:
+#     variantName: ubuntu20.04
+#     friendlyVariantName: ubuntu2004
+#     architecture: amd64
+#     containerPath: $(CONTAINER_REGISTRY)/ubuntu20.04-dev-amd64:latest
+#     platform: linux/amd64
 
-- template: stages/binary_build.yaml
-  parameters:
-    variantName: ubuntu20.04
-    friendlyVariantName: ubuntu2004
-    architecture: arm
-    containerPath: $(CONTAINER_REGISTRY)/ubuntu20.04-dev-arm:latest
-    platform: linux/arm/v7
-    ignoreTestFailures: true
+# - template: stages/binary_build.yaml
+#   parameters:
+#     variantName: ubuntu20.04
+#     friendlyVariantName: ubuntu2004
+#     architecture: arm
+#     containerPath: $(CONTAINER_REGISTRY)/ubuntu20.04-dev-arm:latest
+#     platform: linux/arm/v7
+#     ignoreTestFailures: true
 
-- template: stages/binary_build.yaml
-  parameters:
-    variantName: ubuntu20.04
-    friendlyVariantName: ubuntu2004
-    architecture: arm64
-    containerPath: $(CONTAINER_REGISTRY)/ubuntu20.04-dev-arm64:latest
-    platform: linux/arm64/v8
+# - template: stages/binary_build.yaml
+#   parameters:
+#     variantName: ubuntu20.04
+#     friendlyVariantName: ubuntu2004
+#     architecture: arm64
+#     containerPath: $(CONTAINER_REGISTRY)/ubuntu20.04-dev-arm64:latest
+#     platform: linux/arm64/v8
 
 - template: stages/binary_build.yaml
   parameters:
@@ -71,45 +71,45 @@ stages:
     containerPath: $(CONTAINER_REGISTRY)/ubuntu18.04-dev-amd64:latest
     platform: linux/amd64
 
-- template: stages/binary_build.yaml
-  parameters:
-    variantName: ubuntu18.04
-    friendlyVariantName: ubuntu1804
-    architecture: arm
-    containerPath: $(CONTAINER_REGISTRY)/ubuntu18.04-dev-arm:latest
-    platform: linux/arm/v7
+# - template: stages/binary_build.yaml
+#   parameters:
+#     variantName: ubuntu18.04
+#     friendlyVariantName: ubuntu1804
+#     architecture: arm
+#     containerPath: $(CONTAINER_REGISTRY)/ubuntu18.04-dev-arm:latest
+#     platform: linux/arm/v7
 
-- template: stages/binary_build.yaml
-  parameters:
-    variantName: ubuntu18.04
-    friendlyVariantName: ubuntu1804
-    architecture: arm64
-    containerPath: $(CONTAINER_REGISTRY)/ubuntu18.04-dev-arm64:latest
-    platform: linux/arm64/v8
+# - template: stages/binary_build.yaml
+#   parameters:
+#     variantName: ubuntu18.04
+#     friendlyVariantName: ubuntu1804
+#     architecture: arm64
+#     containerPath: $(CONTAINER_REGISTRY)/ubuntu18.04-dev-arm64:latest
+#     platform: linux/arm64/v8
 
-- template: stages/binary_build.yaml
-  parameters:
-    variantName: debian9
-    friendlyVariantName: debian9
-    architecture: amd64
-    containerPath: $(CONTAINER_REGISTRY)/debian9-dev-amd64:latest
-    platform: linux/amd64
+# - template: stages/binary_build.yaml
+#   parameters:
+#     variantName: debian9
+#     friendlyVariantName: debian9
+#     architecture: amd64
+#     containerPath: $(CONTAINER_REGISTRY)/debian9-dev-amd64:latest
+#     platform: linux/amd64
 
-- template: stages/binary_build.yaml
-  parameters:
-    variantName: debian9
-    friendlyVariantName: debian9
-    architecture: arm
-    containerPath: $(CONTAINER_REGISTRY)/debian9-dev-arm:latest
-    platform: linux/arm/v7
+# - template: stages/binary_build.yaml
+#   parameters:
+#     variantName: debian9
+#     friendlyVariantName: debian9
+#     architecture: arm
+#     containerPath: $(CONTAINER_REGISTRY)/debian9-dev-arm:latest
+#     platform: linux/arm/v7
 
-- template: stages/binary_build.yaml
-  parameters:
-    variantName: debian9
-    friendlyVariantName: debian9
-    architecture: arm64
-    containerPath: $(CONTAINER_REGISTRY)/debian9-dev-arm64:latest
-    platform: linux/arm64/v8
+# - template: stages/binary_build.yaml
+#   parameters:
+#     variantName: debian9
+#     friendlyVariantName: debian9
+#     architecture: arm64
+#     containerPath: $(CONTAINER_REGISTRY)/debian9-dev-arm64:latest
+#     platform: linux/arm64/v8
 
 - template: stages/binary_signing.yaml
   parameters:
