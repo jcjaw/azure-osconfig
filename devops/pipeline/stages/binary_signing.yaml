@@ -109,9 +109,14 @@ stages:
 
     - powershell: |
         $result = ((cat .\Output\output.json | ConvertFrom-Json).submissionResponses | where { $_.statusCode -eq "pass" }).Count -eq (ls .\Input\).Count
-        if ($result -eq False)
+        if ($result -eq $false)
         {
           Write-Error "Failed signing" -TargetObject $result
         }
       workingDirectory: $(Build.SourcesDirectory)/esrpclient
       displayName: Validate ESRP signing job
+
+   - publish: $(Build.SourcesDirectory)/esrpclient/Output/
+      displayName: Publishing signed packages
+      artifact: OSConfig_$(Build.BuildNumber)_SIGNED
+      condition: eq(${{ parameters.publishArtifact }}, true) 
