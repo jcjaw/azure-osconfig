@@ -70,7 +70,6 @@ stages:
         path: $(Agent.TempDirectory)/osconfig_bin/
 
     - powershell: |
-        mkdir $(Build.SourcesDirectory)/esrpclient/Input
         Get-ChildItem -Recurse -File -Filter *.deb | Move-Item -Destination $(Build.SourcesDirectory)/esrpclient/Input
       workingDirectory: $(Agent.TempDirectory)/osconfig_bin/
       displayName: Stage artifacts for signing
