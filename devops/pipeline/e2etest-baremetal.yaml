@@ -20,8 +20,8 @@ strategy:
 pool:
   name: OSConfig
   demands:
-  - environments -equals baremetal
-  - rpi4-arm64
+  - environment -equals baremetal
+  - $(environment)
 workspace:
   clean: all
 
