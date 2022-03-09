@@ -8,22 +8,28 @@ variables:
   SERVICE_CONNECTION: OSconfig-arm
   IOTHUBOWNER_CONN_STR: $(IOTHUBOWNER_CONNECTION_STRING)
 
+strategy:
+  matrix:
+    # !!! ADD NEW TARGETS HERE !!!
+    debian-11:
+      distroName: debian-11
+      device_id: ahbenmes-rpi4-buster
+      packagePattern: '**/*focal_aarch64.deb'
+      demands: rpi4-arm64
+
 stages:
-- stage: Run_Test_Driver
-  displayName: Execute E2E Test
-  pool:
-    name: OSConfig
+- stage: Run_Test_Driver_$(distroName)
+  displayName: Baremetal test - $(device_id)
   jobs:
   - job: E2ETestJob
+    pool:
+      name: OSConfig
+      demands:
+      - environments -equals 'baremetal'
+      - $(demands)
     workspace:
       clean: all
-    strategy:
-      matrix:
-        # !!! ADD NEW TARGETS HERE !!!
-        debian-11:
-          distroName: debian-11
-          device_id: ahbenmes-rpi4-buster
-          packagePattern: '**/*focal_aarch64.deb'
+
     steps:
       - task: DownloadPipelineArtifact@2
         displayName: Download OSConfig from pipeline
@@ -46,7 +52,7 @@ stages:
         workingDirectory: $(Pipeline.Workspace)
         condition: succeededOrFailed()
 
-      - script: dotnet test --filter E2eTesting.HostNameTests --logger trx
+      - script: dotnet test --logger trx
         displayName: Run Test Driver
         condition: succeededOrFailed()
         env:
