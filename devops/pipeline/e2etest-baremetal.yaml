@@ -25,18 +25,21 @@ stages:
     steps:
       - task: DownloadPipelineArtifact@2
         displayName: Download OSConfig from pipeline
+        condition: succeededOrFailed()
         inputs:
           source: 'specific'
           project: 'AzOsConfig'
           pipeline: $(package_pipeline)
           runVersion: 'latestFromBranch'
-          runBranch: $(Build.SourceBranch)
+          # runBranch: $(Build.SourceBranch)
+          runBranch: refs/heads/main
           itemPattern: $(packagePattern)
 
       - script: |
           sudo dpkg -i ./`find . -name '*.deb' | head -n 1`
         displayName: Install OSConfig
         workingDirectory: $(Pipeline.Workspace)
+        condition: succeededOrFailed()
 
       - script: dotnet test --filter E2eTesting.HostNameTests --logger trx
         displayName: Run Test Driver
