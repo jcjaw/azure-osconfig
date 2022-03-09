@@ -15,13 +15,15 @@ stages:
     name: OSConfig
   jobs:
   - job: E2ETestJob
+    workspace:
+      clean: all
     strategy:
       matrix:
         # !!! ADD NEW TARGETS HERE !!!
         debian-11:
           distroName: debian-11
           device_id: ahbenmes-rpi4-buster
-          packagePattern: '*SIGNED/*focal_aarch64.deb'
+          packagePattern: '**/*focal_aarch64.deb'
     steps:
       - task: DownloadPipelineArtifact@2
         displayName: Download OSConfig from pipeline
@@ -36,7 +38,7 @@ stages:
           itemPattern: $(packagePattern)
 
       - script: |
-          sudo dpkg -i ./`find . -name '*.deb' | head -n 1`
+          sudo dpkg -i `find . -name '*.deb' | head -n 1`
         displayName: Install OSConfig
         workingDirectory: $(Pipeline.Workspace)
         condition: succeededOrFailed()
