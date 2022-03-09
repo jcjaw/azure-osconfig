@@ -21,7 +21,7 @@ pool:
   name: OSConfig
   demands:
   - environment -equals baremetal
-  - $(environment)
+  - rpi4-arm64
 workspace:
   clean: all
 
