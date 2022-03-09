@@ -18,6 +18,9 @@ variables:
 stages:
 - stage: Run_Test_Driver
   displayName: Execute E2E Test
+  pool:
+    name: baremetal
+    demands: environment -equals 'baremetal'
   jobs:
   - job: E2ETestJob
     strategy:
