@@ -1,0 +1,64 @@
+# E2E test pipeline - performs end-to-end tests on baremetal devices
+# Devices must be provisioned with azure-pipelines-agent
+# TODO: Add README.md
+
+name: $(MajorVersion).$(MinorVersion).$(PatchVersion).$(Date:yyyyMMdd)$(Rev:rr)
+
+resources:
+  containers:
+  - container: ubuntu
+    image: ubuntu:18.04
+  - container: dotnet
+    image: mcr.microsoft.com/dotnet/sdk:5.0
+
+variables:
+  SERVICE_CONNECTION: OSconfig-arm
+  IOTHUBOWNER_CONN_STR: $(IOTHUBOWNER_CONNECTION_STRING)
+
+stages:
+- stage: Run_Test_Driver
+  displayName: Execute E2E Test
+  jobs:
+  - job: E2ETestJob
+    strategy:
+      matrix:
+        # !!! ADD NEW TARGETS HERE !!!
+        debian-11:
+          distroName: debian-11
+          device_id: ahbenmes-rpi4-buster
+    # host must have dotnet
+    # container: dotnet
+    steps:
+      - script: 'dotnet test --filter E2eTesting.HostNameTests --logger trx'
+        displayName: Run Test Driver
+        env:
+          E2E_OSCONFIG_IOTHUB_CONNSTR: $(IOTHUBOWNER_CONN_STR)
+          E2E_OSCONFIG_DEVICE_ID: $(device_id)
+          E2E_OSCONFIG_SAS_TOKEN: $(SAS_TOKEN)
+          E2E_OSCONFIG_UPLOAD_URL: $(UPLOAD_URL_BASE_PATH)
+          E2E_OSCONFIG_RESOURCE_GROUP_NAME: baremetal-$(Date:yyyyMMdd)$(Rev:rr)
+          E2E_OSCONFIG_TWIN_TIMEOUT: $(TWIN_TIMEOUT)
+        workingDirectory: $(Build.SourcesDirectory)/src/tests/e2etest
+
+      - task: PublishTestResults@2
+        condition: or(succeeded(), failed())
+        continueOnError: true
+        inputs:
+          testRunner: VSTest
+          testResultsFiles: '$(Build.SourcesDirectory)/src/tests/e2etest/TestResults/*.trx'
+          failTaskOnFailedTests: true
+          testRunTitle: $(distroName)
+
+      - script: |
+          prefix=`echo baremetal-$(Date:yyyyMMdd)$(Rev:rr)'`
+          mkdir -p $(Build.ArtifactStagingDirectory)/logs
+          wget "$(UPLOAD_URL_BASE_PATH)`echo $prefix`-$(device_id).tar.gz?$(SAS_TOKEN)" -O $(Build.ArtifactStagingDirectory)/logs/`echo $prefix`-$(device_id).tar.gz
+        displayName: Get OSConfig logs from blobstore
+        condition: or(succeeded(), failed())
+        continueOnError: true
+
+      - publish: '$(Build.ArtifactStagingDirectory)/logs/'
+        displayName: 'Publish OSConfig Logs'
+        condition: or(succeeded(), failed())
+        continueOnError: true
+        artifact: Logs_$(distroName)
