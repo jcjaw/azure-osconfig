@@ -39,6 +39,9 @@ stages:
 
       - script: |
           sudo dpkg -i `find . -name '*.deb' | head -n 1`
+          sudo sed -i '/\"FullLogging\"/c\\  \"FullLogging\": 1,' /etc/osconfig/osconfig.json
+          sudo systemctl daemon-reload
+          sudo systemctl start osconfig
         displayName: Install OSConfig
         workingDirectory: $(Pipeline.Workspace)
         condition: succeededOrFailed()
