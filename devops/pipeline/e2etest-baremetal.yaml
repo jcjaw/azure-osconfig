@@ -21,7 +21,7 @@ stages:
         debian-11:
           distroName: debian-11
           device_id: ahbenmes-rpi4-buster
-          packagePattern: '**/*focal_x86_64.deb'
+          packagePattern: '*SIGNED/*focal_aarch64.deb'
     steps:
       - task: DownloadPipelineArtifact@2
         displayName: Download OSConfig from pipeline
