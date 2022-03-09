@@ -22,7 +22,7 @@ stages:
           distroName: debian-11
           device_id: ahbenmes-rpi4-buster
     steps:
-      - script: 'dotnet test --filter E2eTesting.HostNameTests --logger trx'
+      - script: dotnet test --filter E2eTesting.HostNameTests --logger trx
         displayName: Run Test Driver
         condition: succeededOrFailed()
         env:
@@ -39,12 +39,12 @@ stages:
         continueOnError: true
         inputs:
           testRunner: VSTest
-          testResultsFiles: '$(Build.SourcesDirectory)/src/tests/e2etest/TestResults/*.trx'
+          testResultsFiles: $(Build.SourcesDirectory)/src/tests/e2etest/TestResults/*.trx
           failTaskOnFailedTests: true
           testRunTitle: $(distroName)
 
       - script: |
-          prefix=`echo baremetal-$(Build.BuildNumber)'`
+          prefix=`echo baremetal-$(Build.BuildNumber)`
           mkdir -p $(Build.ArtifactStagingDirectory)/logs
           wget "$(UPLOAD_URL_BASE_PATH)`echo $prefix`-$(device_id).tar.gz?$(SAS_TOKEN)" -O $(Build.ArtifactStagingDirectory)/logs/`echo $prefix`-$(device_id).tar.gz
         displayName: Get OSConfig logs from blobstore
