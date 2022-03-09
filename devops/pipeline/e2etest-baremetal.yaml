@@ -33,6 +33,7 @@ stages:
     steps:
       - script: 'dotnet test --filter E2eTesting.HostNameTests --logger trx'
         displayName: Run Test Driver
+        condition: succeededOrFailed()
         env:
           E2E_OSCONFIG_IOTHUB_CONNSTR: $(IOTHUBOWNER_CONN_STR)
           E2E_OSCONFIG_DEVICE_ID: $(device_id)
@@ -43,7 +44,7 @@ stages:
         workingDirectory: $(Build.SourcesDirectory)/src/tests/e2etest
 
       - task: PublishTestResults@2
-        condition: or(succeeded(), failed())
+        condition: succeededOrFailed()
         continueOnError: true
         inputs:
           testRunner: VSTest
@@ -56,11 +57,11 @@ stages:
           mkdir -p $(Build.ArtifactStagingDirectory)/logs
           wget "$(UPLOAD_URL_BASE_PATH)`echo $prefix`-$(device_id).tar.gz?$(SAS_TOKEN)" -O $(Build.ArtifactStagingDirectory)/logs/`echo $prefix`-$(device_id).tar.gz
         displayName: Get OSConfig logs from blobstore
-        condition: or(succeeded(), failed())
+        condition: succeededOrFailed()
         continueOnError: true
 
       - publish: '$(Build.ArtifactStagingDirectory)/logs/'
         displayName: 'Publish OSConfig Logs'
-        condition: or(succeeded(), failed())
+        condition: succeededOrFailed()
         continueOnError: true
         artifact: Logs_$(distroName)
