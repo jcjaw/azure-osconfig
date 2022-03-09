@@ -2,14 +2,7 @@
 # Devices must be provisioned with azure-pipelines-agent
 # TODO: Add README.md
 
-name: $(MajorVersion).$(MinorVersion).$(PatchVersion).$(Date:yyyyMMdd)$(Rev:rr)
-
-resources:
-  containers:
-  - container: ubuntu
-    image: ubuntu:18.04
-  - container: dotnet
-    image: mcr.microsoft.com/dotnet/sdk:5.0
+name: $(Date:yyyyMMdd)$(Rev:rr)
 
 variables:
   SERVICE_CONNECTION: OSconfig-arm
@@ -28,8 +21,6 @@ stages:
         debian-11:
           distroName: debian-11
           device_id: ahbenmes-rpi4-buster
-    # host must have dotnet
-    # container: dotnet
     steps:
       - script: 'dotnet test --filter E2eTesting.HostNameTests --logger trx'
         displayName: Run Test Driver
@@ -39,7 +30,7 @@ stages:
           E2E_OSCONFIG_DEVICE_ID: $(device_id)
           E2E_OSCONFIG_SAS_TOKEN: $(SAS_TOKEN)
           E2E_OSCONFIG_UPLOAD_URL: $(UPLOAD_URL_BASE_PATH)
-          E2E_OSCONFIG_RESOURCE_GROUP_NAME: baremetal-$(Date:yyyyMMdd)$(Rev:rr)
+          E2E_OSCONFIG_RESOURCE_GROUP_NAME: baremetal-$(Build.BuildNumber)
           E2E_OSCONFIG_TWIN_TIMEOUT: $(TWIN_TIMEOUT)
         workingDirectory: $(Build.SourcesDirectory)/src/tests/e2etest
 
@@ -53,7 +44,7 @@ stages:
           testRunTitle: $(distroName)
 
       - script: |
-          prefix=`echo baremetal-$(Date:yyyyMMdd)$(Rev:rr)'`
+          prefix=`echo baremetal-$(Build.BuildNumber)'`
           mkdir -p $(Build.ArtifactStagingDirectory)/logs
           wget "$(UPLOAD_URL_BASE_PATH)`echo $prefix`-$(device_id).tar.gz?$(SAS_TOKEN)" -O $(Build.ArtifactStagingDirectory)/logs/`echo $prefix`-$(device_id).tar.gz
         displayName: Get OSConfig logs from blobstore
