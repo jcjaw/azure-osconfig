@@ -21,7 +21,23 @@ stages:
         debian-11:
           distroName: debian-11
           device_id: ahbenmes-rpi4-buster
+          packagePattern: '**/*focal_x86_64.deb'
     steps:
+      - task: DownloadPipelineArtifact@2
+        displayName: Download OSConfig from pipeline
+        inputs:
+          source: 'specific'
+          project: 'AzOsConfig'
+          pipeline: $(package_pipeline)
+          runVersion: 'latestFromBranch'
+          runBranch: $(Build.SourceBranch)
+          itemPattern: $(packagePattern)
+
+      - script: |
+          sudo dpkg -i ./`find . -name '*.deb' | head -n 1`
+        displayName: Install OSConfig
+        workingDirectory: $(Pipeline.Workspace)
+
       - script: dotnet test --filter E2eTesting.HostNameTests --logger trx
         displayName: Run Test Driver
         condition: succeededOrFailed()
