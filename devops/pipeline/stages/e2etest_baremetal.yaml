@@ -1,10 +1,14 @@
 # E2E Baremetal Test Stage Definition
 # Parameters:
+#  - (Required) jobName [string]: 
 #  - (Required) device_id [string]: 
 #  - (Required) packagePattern [string]: 
 #  - (Required) environment [string]: 
 
 parameters:
+  - name: jobName
+    type: string
+
   - name: device_id
     type: string
 
