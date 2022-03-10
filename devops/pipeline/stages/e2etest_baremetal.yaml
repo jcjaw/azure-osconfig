@@ -24,7 +24,7 @@ stages:
   dependsOn: []
 
   jobs:
-  - job: ${{ parameters.device_id }}
+  - job: ${{ parameters.jobName }}
 
     pool:
       name: OSConfig
