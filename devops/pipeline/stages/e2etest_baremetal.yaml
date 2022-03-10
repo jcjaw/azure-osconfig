@@ -46,7 +46,7 @@ stages:
         runVersion: 'latestFromBranch'
         # runBranch: $(Build.SourceBranch)
         runBranch: refs/heads/main
-        itemPattern: $(packagePattern)
+        itemPattern: ${{ parameters.packagePattern }}
 
     - script: |
         sudo dpkg -i `find . -name '*.deb' | head -n 1`
@@ -62,7 +62,7 @@ stages:
       condition: succeededOrFailed()
       env:
         E2E_OSCONFIG_IOTHUB_CONNSTR: $(IOTHUBOWNER_CONN_STR)
-        E2E_OSCONFIG_DEVICE_ID: $(device_id)
+        E2E_OSCONFIG_DEVICE_ID: ${{ parameters.device_id }}
         E2E_OSCONFIG_SAS_TOKEN: $(SAS_TOKEN)
         E2E_OSCONFIG_UPLOAD_URL: $(UPLOAD_URL_BASE_PATH)
         E2E_OSCONFIG_RESOURCE_GROUP_NAME: baremetal-$(Build.BuildNumber)
