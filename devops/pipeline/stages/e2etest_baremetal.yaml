@@ -1,0 +1,89 @@
+# E2E Baremetal Test Stage Definition
+# Parameters:
+#  - (Required) device_id [string]: 
+#  - (Required) packagePattern [string]: 
+#  - (Required) environment [string]: 
+
+parameters:
+  - name: device_id
+    type: string
+
+  - name: packagePattern
+    type: string
+
+  - name: environment
+    type: string
+
+stages:
+- stage: source_build
+  displayName: Source
+  dependsOn: []
+
+  jobs:
+  - job: ${{ parameters.device_id }}
+
+    pool:
+      name: OSConfig
+      demands:
+      - environment -equals baremetal
+      - ${{ parameters.environment }}
+
+    workspace:
+      clean: all
+
+    steps:
+    - task: DownloadPipelineArtifact@2
+      displayName: Download OSConfig from pipeline
+      condition: succeededOrFailed()
+      inputs:
+        source: 'specific'
+        project: 'AzOsConfig'
+        pipeline: $(package_pipeline)
+        runVersion: 'latestFromBranch'
+        # runBranch: $(Build.SourceBranch)
+        runBranch: refs/heads/main
+        itemPattern: $(packagePattern)
+
+    - script: |
+        sudo dpkg -i `find . -name '*.deb' | head -n 1`
+        sudo sed -i '/\"FullLogging\"/c\\  \"FullLogging\": 1,' /etc/osconfig/osconfig.json
+        sudo systemctl daemon-reload
+        sudo systemctl start osconfig
+      displayName: Install OSConfig
+      workingDirectory: $(Pipeline.Workspace)
+      condition: succeededOrFailed()
+
+    - script: dotnet test --logger trx
+      displayName: Run Test Driver
+      condition: succeededOrFailed()
+      env:
+        E2E_OSCONFIG_IOTHUB_CONNSTR: $(IOTHUBOWNER_CONN_STR)
+        E2E_OSCONFIG_DEVICE_ID: $(device_id)
+        E2E_OSCONFIG_SAS_TOKEN: $(SAS_TOKEN)
+        E2E_OSCONFIG_UPLOAD_URL: $(UPLOAD_URL_BASE_PATH)
+        E2E_OSCONFIG_RESOURCE_GROUP_NAME: baremetal-$(Build.BuildNumber)
+        E2E_OSCONFIG_TWIN_TIMEOUT: $(TWIN_TIMEOUT)
+      workingDirectory: $(Build.SourcesDirectory)/src/tests/e2etest
+
+    - task: PublishTestResults@2
+      condition: succeededOrFailed()
+      continueOnError: true
+      inputs:
+        testRunner: VSTest
+        testResultsFiles: $(Build.SourcesDirectory)/src/tests/e2etest/TestResults/*.trx
+        failTaskOnFailedTests: true
+        testRunTitle: $(distroName)
+
+    - script: |
+        prefix=`echo baremetal-$(Build.BuildNumber)`
+        mkdir -p $(Build.ArtifactStagingDirectory)/logs
+        wget "$(UPLOAD_URL_BASE_PATH)`echo $prefix`-$(device_id).tar.gz?$(SAS_TOKEN)" -O $(Build.ArtifactStagingDirectory)/logs/`echo $prefix`-$(device_id).tar.gz
+      displayName: Get OSConfig logs from blobstore
+      condition: succeededOrFailed()
+      continueOnError: true
+
+    - publish: '$(Build.ArtifactStagingDirectory)/logs/'
+      displayName: 'Publish OSConfig Logs'
+      condition: succeededOrFailed()
+      continueOnError: true
+      artifact: Logs_$(distroName)
