@@ -4,10 +4,6 @@
 
 name: $(Date:yyyyMMdd)$(Rev:rr)
 
-variables:
-  SERVICE_CONNECTION: OSconfig-arm
-  IOTHUBOWNER_CONN_STR: $(IOTHUBOWNER_CONNECTION_STRING)
-
 strategy:
   matrix:
     # !!! ADD NEW TARGETS HERE !!!
@@ -17,11 +13,16 @@ strategy:
       packagePattern: '**/*focal_aarch64.deb'
       environment: rpi4-arm64
 
+variables:
+  SERVICE_CONNECTION: OSconfig-arm
+  IOTHUBOWNER_CONN_STR: $(IOTHUBOWNER_CONNECTION_STRING)
+  ENVIRONMENT: $(environment)
+
 pool:
   name: OSConfig
   demands:
   - environment -equals baremetal
-  - $(environment)
+  - $(ENVIRONMENT)
 
 workspace:
   clean: all
