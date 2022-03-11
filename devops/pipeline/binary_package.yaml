@@ -53,7 +53,6 @@ stages:
     architecture: arm
     containerPath: $(CONTAINER_REGISTRY)/ubuntu20.04-dev-arm:latest
     platform: linux/arm/v7
-    ignoreTestFailures: true
 
 - template: stages/binary_build.yaml
   parameters:

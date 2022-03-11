@@ -34,6 +34,16 @@ stages:
 
 - template: stages/binary_build.yaml
   parameters:
+    variantName: ubuntu20.04
+    friendlyVariantName: ubuntu2004
+    architecture: arm
+    containerPath: $(CONTAINER_REGISTRY)/ubuntu20.04-dev-arm:latest
+    platform: linux/arm/v7
+    publishArtifact: false
+    prefix: pkg
+
+- template: stages/binary_build.yaml
+  parameters:
     variantName: ubuntu18.04
     friendlyVariantName: ubuntu1804
     architecture: amd64
