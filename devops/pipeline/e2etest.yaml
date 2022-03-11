@@ -173,7 +173,8 @@ stages:
           project: 'AzOsConfig'
           pipeline: $(package_pipeline)
           runVersion: 'latestFromBranch'
-          runBranch: $(Build.SourceBranch)
+          # runBranch: $(Build.SourceBranch)
+          runBranch: refs/heads/main
           itemPattern: $(packagePattern)
 
       - script: |
