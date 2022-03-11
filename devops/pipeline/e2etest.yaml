@@ -131,7 +131,7 @@ stages:
               export DEBIAN_FRONTEND=noninteractive &&
               sudo apt update && sudo apt upgrade -y && sudo apt install curl wget -y &&
               wget https://github.com/Azure/azure-iotedge/releases/download/1.2.8/aziot-identity-service_1.2.6-1_debian9_amd64.deb &&
-              sudo apt install ./aziot-identity-service_1.2.6-1_debian9_amd64.deb -y
+              sudo dpkg -i ./aziot-identity-service_1.2.6-1_debian9_amd64.deb
           ubuntu-18.04:
             distroName: ubuntu-18.04
             image_publisher: Canonical
