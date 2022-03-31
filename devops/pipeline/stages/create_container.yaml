@@ -1,0 +1,39 @@
+# Container build stage definition
+# Parameters:
+#  - (Required) repoName [string]: the name the repo (Example. ubuntu20.04-dev-amd64:latest)
+#  - (Required) dockerFilePath [string]: the full path to the container definition (ex. ./devops/docker/[distro]-[arch]/Dockerfile)
+
+parameters:
+  - name: repoName
+    type: string
+
+  - name: dockerFilePath
+    type: string
+
+stages:
+- stage: container_build
+  displayName: Container build ${{ parameters.repoName }}
+
+  jobs:
+  - job: main
+    timeoutInMinutes: 240
+    pool:
+      vmImage: 'ubuntu-20.04'
+
+    steps:
+    - script: |
+        docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+      displayName: Setup QEMU emulation
+
+    - task: Docker@2
+      displayName: Build and Push
+      inputs:
+        command: buildAndPush
+        containerRegistry: $(SERVICE_CONNECTION)
+        repository: ${{ parameters.repoName }}
+        Dockerfile: $(Build.SourcesDirectory)/${{ parameters.dockerFilePath }}
+        tags: |
+          $(Build.BuildId)
+          latest
+
+    

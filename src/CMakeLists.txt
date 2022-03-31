@@ -138,9 +138,13 @@ set(CPACK_VERBATIM_VARIABLES YES)
 
 # RPM packaging
 set(CPACK_RPM_PACKAGE_NAME ${OsConfigProjectName})
-set(CPACK_RPM_PACKAGE_VERSION ${CMAKE_PROJECT_VERSION_MAJOR}.${CMAKE_PROJECT_VERSION_MINOR}.${CMAKE_PROJECT_VERSION_PATCH})
-set(CPACK_RPM_PACKAGE_REQUIRES "")
+set(CPACK_RPM_PACKAGE_SUMMARY ${OsConfigProjectLongName})
+set(CPACK_RPM_PACKAGE_DESCRIPTION ${OsConfigProjectLongName})
+set(CPACK_RPM_USER_BINARY_SPECFILE "${CMAKE_TEMPLATES_DIR}/osconfig.nosource.spec.in")
+set(CPACK_RPM_PACKAGE_VERSION ${OsConfigVersionString})
+# set(CPACK_RPM_PACKAGE_REQUIRES "")
 set(CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST ${CPACK_EXCLUDES})
+set(CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST_ADDITION "/etc")
 
 # Debian packaging - see /debian for postinst/prerm scripts
 # https://www.debian.org/doc/manuals/maint-guide/

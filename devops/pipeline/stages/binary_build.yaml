@@ -9,6 +9,7 @@
 #  - (Optional) performCoverage [boolean]: performs code coverage (when enabled, no artifacts are produced) - default: false
 #  - (Optional) ignoreTestFailures [boolean]: ignores the failures caused by failing tests - default: false
 #  - (Optional) publishArtifact [boolean]: publishes the built artifacts (packages) as pipeline artifacts - default: true
+#  - (Optional) packaging [options: rpm | deb]: Packaging type - default: deb
 
 parameters:
 - name: prefix
@@ -37,6 +38,13 @@ parameters:
   type: boolean
   default: true
 
+  - name: packaging
+    type: string
+    default: deb
+    values:
+    - rpm
+    - deb
+
 stages:
 - stage: ${{ parameters.prefix }}_${{ parameters.friendlyVariantName }}_${{ parameters.architecture }}
   displayName: Binary ${{ parameters.variantName }} ${{ parameters.architecture }}
@@ -62,7 +70,7 @@ stages:
 
     - script: |
         docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-        CONTAINER_ID=`docker run -di -v $(Build.SourcesDirectory):/AzOsConfig --platform=${{ parameters.platform }} ${{ parameters.containerPath }}`
+        CONTAINER_ID=`docker run -di -v $(Build.SourcesDirectory):/AzOsConfig --platform=${{ parameters.platform }} ${{ parameters.containerPath }} bash`
         echo CONTAINER_ID=$CONTAINER_ID
         echo "##vso[task.setvariable variable=CONTAINER_ID]$CONTAINER_ID"
         # Extract TWEAK version from full version string
@@ -86,18 +94,26 @@ stages:
         docker exec $(CONTAINER_ID) bash -c "cmake --build /AzOsConfig/build-${{ parameters.architecture }}"
       displayName: Build osconfig
 
-    - ${{ if eq(parameters.publishArtifact, True) }}:
+    - ${{ if eq(parameters.packaging, 'deb') }}:
       - script: |
           docker exec $(CONTAINER_ID) bash -c "cd /AzOsConfig/build-${{ parameters.architecture }} && cpack -G DEB"
         displayName: Create Deb package
-
+        condition: eq(${{ parameters.publishArtifact }}, true)
+    - ${{ if eq(parameters.packaging, 'rpm') }}:
       - script: |
-          cp $(Build.SourcesDirectory)/build-${{ parameters.architecture }}/osconfig_* $(Build.ArtifactStagingDirectory)
-        displayName: Stage Deb package
+          docker exec $(CONTAINER_ID) bash -c "cd /AzOsConfig/build-${{ parameters.architecture }} && cpack -G RPM"
+        displayName: Create RPM package
+        condition: eq(${{ parameters.publishArtifact }}, true)
 
-      - publish: $(Build.ArtifactStagingDirectory)
-        displayName: Publishing deb package for ${{ parameters.variantName }}_${{ parameters.architecture }}
-        artifact: OSConfig_$(Build.BuildNumber)_${{ parameters.variantName }}_${{ parameters.architecture }}
+    - script: |
+        cp $(Build.SourcesDirectory)/build-${{ parameters.architecture }}/osconfig* $(Build.ArtifactStagingDirectory)
+      displayName: Stage package
+      condition: eq(${{ parameters.publishArtifact }}, true)
+
+    - publish: $(Build.ArtifactStagingDirectory)
+      displayName: Publishing package for ${{ parameters.variantName }}_${{ parameters.architecture }}
+      artifact: OSConfig_$(Build.BuildNumber)_${{ parameters.variantName }}_${{ parameters.architecture }}
+      condition: eq(${{ parameters.publishArtifact }}, true)
 
     - ${{ if eq(parameters.runUnitTests, True) }}:
     # Runs, tests and records in dashboard mode (-T) which will create a report used below (See `PublishTestResults`)

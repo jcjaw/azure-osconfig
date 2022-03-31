@@ -67,10 +67,11 @@ stages:
           **/*stretch_x86_64.deb
           **/*stretch_armv7l.deb
           **/*stretch_aarch64.deb
+          **/*x86_64.rpm
         path: $(Agent.TempDirectory)/osconfig_bin/
 
     - powershell: |
-        Get-ChildItem -Recurse -File -Filter *.deb | Move-Item -Destination $(Build.SourcesDirectory)/esrpclient/Input
+        Get-ChildItem .\* -Recurse -Include "*.deb", "*.rpm" | Move-Item -Destination $(Build.SourcesDirectory)/esrpclient/Input
       workingDirectory: $(Agent.TempDirectory)/osconfig_bin/
       displayName: Stage artifacts for signing
 

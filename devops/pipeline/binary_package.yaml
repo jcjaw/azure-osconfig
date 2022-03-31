@@ -111,6 +111,15 @@ stages:
     containerPath: $(CONTAINER_REGISTRY)/debian9-dev-arm64:latest
     platform: linux/arm64/v8
 
+- template: stages/binary_build.yaml
+  parameters:
+    variantName: marinerV1
+    friendlyVariantName: marinerV1
+    architecture: amd64
+    containerPath: $(CONTAINER_REGISTRY)/marinerv1-dev-amd64:latest
+    platform: linux/amd64
+    packaging: rpm
+
 - template: stages/binary_signing.yaml
   parameters:
     performSigning: ${{ parameters.performSigning }}
