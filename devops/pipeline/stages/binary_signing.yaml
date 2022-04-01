@@ -27,6 +27,10 @@ parameters:
     type: string
     default: my-esrpCertificate-name
 
+  - name: dependsOn
+    type: object
+    default: []
+
 stages:
 - stage: ${{ parameters.prefix }}_code_signing
   condition: eq(${{ parameters.performSigning }}, true)

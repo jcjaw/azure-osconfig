@@ -10,6 +10,28 @@ parameters:
     type: boolean
     displayName: 'Perform code signing'
     default: true
+  - name: buildTargets
+    type: object
+    default:
+      - ubuntu2004-amd64
+        variantName: ubuntu20.04
+        friendlyVariantName: ubuntu2004
+        architecture: amd64
+        containerPath: $(CONTAINER_REGISTRY)/ubuntu20.04-dev-amd64:latest
+        platform: linux/amd64
+      - ubuntu2004-arm64
+        variantName: ubuntu20.04
+        friendlyVariantName: ubuntu2004
+        architecture: arm64
+        containerPath: $(CONTAINER_REGISTRY)/ubuntu20.04-dev-arm64:latest
+        platform: linux/arm64/v8
+      - ubuntu2004-arm
+        variantName: ubuntu20.04
+        friendlyVariantName: ubuntu2004
+        architecture: arm
+        containerPath: $(CONTAINER_REGISTRY)/ubuntu20.04-dev-arm64:latest
+        platform: linux/arm/v7
+        ignoreTestFailures: true
 
 variables:
   SERVICE_CONNECTION: OSConfig-ACR
