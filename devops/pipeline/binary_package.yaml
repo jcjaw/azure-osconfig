@@ -13,56 +13,56 @@ parameters:
   - name: buildTargets
     type: object
     default:
-      - ubuntu2004-amd64
+      - ubuntu2004_amd64
         variantName: ubuntu20.04
         friendlyVariantName: ubuntu2004
         architecture: amd64
         containerPath: $(CONTAINER_REGISTRY)/ubuntu20.04-dev-amd64:latest
         platform: linux/amd64
-      - ubuntu2004-arm64
+      - ubuntu2004_arm64
         variantName: ubuntu20.04
         friendlyVariantName: ubuntu2004
         architecture: arm64
         containerPath: $(CONTAINER_REGISTRY)/ubuntu20.04-dev-arm64:latest
         platform: linux/arm64/v8
-      - ubuntu2004-arm
+      - ubuntu2004_arm
         variantName: ubuntu20.04
         friendlyVariantName: ubuntu2004
         architecture: arm
         containerPath: $(CONTAINER_REGISTRY)/ubuntu20.04-dev-arm64:latest
         platform: linux/arm/v7
         ignoreTestFailures: true
-      - ubuntu1804-amd64
+      - ubuntu1804_amd64
         variantName: ubuntu18.04
         friendlyVariantName: ubuntu1804
         architecture: amd64
         containerPath: $(CONTAINER_REGISTRY)/ubuntu18.04-dev-amd64:latest
         platform: linux/amd64
-      - ubuntu1804-arm64
+      - ubuntu1804_arm64
         variantName: ubuntu18.04
         friendlyVariantName: ubuntu1804
         architecture: arm64
         containerPath: $(CONTAINER_REGISTRY)/ubuntu18.04-dev-arm64:latest
         platform: linux/arm64/v8
-      - ubuntu1804-arm
+      - ubuntu1804_arm
         variantName: ubuntu18.04
         friendlyVariantName: ubuntu1804
         architecture: arm
         containerPath: $(CONTAINER_REGISTRY)/ubuntu18.04-dev-arm64:latest
         platform: linux/arm/v7
-      - debian9-amd64
+      - debian9_amd64
         variantName: debian9
         friendlyVariantName: debian9
         architecture: amd64
         containerPath: $(CONTAINER_REGISTRY)/debian9-dev-amd64:latest
         platform: linux/amd64
-      - debian9-arm64
+      - debian9_arm64
         variantName: debian9
         friendlyVariantName: debian9
         architecture: arm64
         containerPath: $(CONTAINER_REGISTRY)/debian9-dev-arm64:latest
         platform: linux/arm64/v8
-      - debian9-arm
+      - debian9_arm
         variantName: debian9
         friendlyVariantName: debian9
         architecture: arm
