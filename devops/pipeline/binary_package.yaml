@@ -32,6 +32,42 @@ parameters:
         containerPath: $(CONTAINER_REGISTRY)/ubuntu20.04-dev-arm64:latest
         platform: linux/arm/v7
         ignoreTestFailures: true
+      - ubuntu1804-amd64
+        variantName: ubuntu18.04
+        friendlyVariantName: ubuntu1804
+        architecture: amd64
+        containerPath: $(CONTAINER_REGISTRY)/ubuntu18.04-dev-amd64:latest
+        platform: linux/amd64
+      - ubuntu1804-arm64
+        variantName: ubuntu18.04
+        friendlyVariantName: ubuntu1804
+        architecture: arm64
+        containerPath: $(CONTAINER_REGISTRY)/ubuntu18.04-dev-arm64:latest
+        platform: linux/arm64/v8
+      - ubuntu1804-arm
+        variantName: ubuntu18.04
+        friendlyVariantName: ubuntu1804
+        architecture: arm
+        containerPath: $(CONTAINER_REGISTRY)/ubuntu18.04-dev-arm64:latest
+        platform: linux/arm/v7
+      - debian9-amd64
+        variantName: debian9
+        friendlyVariantName: debian9
+        architecture: amd64
+        containerPath: $(CONTAINER_REGISTRY)/debian9-dev-amd64:latest
+        platform: linux/amd64
+      - debian9-arm64
+        variantName: debian9
+        friendlyVariantName: debian9
+        architecture: arm64
+        containerPath: $(CONTAINER_REGISTRY)/debian9-dev-arm64:latest
+        platform: linux/arm64/v8
+      - debian9-arm
+        variantName: debian9
+        friendlyVariantName: debian9
+        architecture: arm
+        containerPath: $(CONTAINER_REGISTRY)/debian9-dev-arm:latest
+        platform: linux/arm/v7
 
 variables:
   SERVICE_CONNECTION: OSConfig-ACR
@@ -60,78 +96,14 @@ stages:
     ignoreTestFailures: true
     publishArtifact: false
 
-- template: stages/binary_build.yaml
-  parameters:
-    variantName: ubuntu20.04
-    friendlyVariantName: ubuntu2004
-    architecture: amd64
-    containerPath: $(CONTAINER_REGISTRY)/ubuntu20.04-dev-amd64:latest
-    platform: linux/amd64
-
-- template: stages/binary_build.yaml
-  parameters:
-    variantName: ubuntu20.04
-    friendlyVariantName: ubuntu2004
-    architecture: arm
-    containerPath: $(CONTAINER_REGISTRY)/ubuntu20.04-dev-arm:latest
-    platform: linux/arm/v7
-    ignoreTestFailures: true
-
-- template: stages/binary_build.yaml
-  parameters:
-    variantName: ubuntu20.04
-    friendlyVariantName: ubuntu2004
-    architecture: arm64
-    containerPath: $(CONTAINER_REGISTRY)/ubuntu20.04-dev-arm64:latest
-    platform: linux/arm64/v8
-
-- template: stages/binary_build.yaml
-  parameters:
-    variantName: ubuntu18.04
-    friendlyVariantName: ubuntu1804
-    architecture: amd64
-    containerPath: $(CONTAINER_REGISTRY)/ubuntu18.04-dev-amd64:latest
-    platform: linux/amd64
-
-- template: stages/binary_build.yaml
-  parameters:
-    variantName: ubuntu18.04
-    friendlyVariantName: ubuntu1804
-    architecture: arm
-    containerPath: $(CONTAINER_REGISTRY)/ubuntu18.04-dev-arm:latest
-    platform: linux/arm/v7
-
-- template: stages/binary_build.yaml
-  parameters:
-    variantName: ubuntu18.04
-    friendlyVariantName: ubuntu1804
-    architecture: arm64
-    containerPath: $(CONTAINER_REGISTRY)/ubuntu18.04-dev-arm64:latest
-    platform: linux/arm64/v8
-
-- template: stages/binary_build.yaml
-  parameters:
-    variantName: debian9
-    friendlyVariantName: debian9
-    architecture: amd64
-    containerPath: $(CONTAINER_REGISTRY)/debian9-dev-amd64:latest
-    platform: linux/amd64
-
-- template: stages/binary_build.yaml
-  parameters:
-    variantName: debian9
-    friendlyVariantName: debian9
-    architecture: arm
-    containerPath: $(CONTAINER_REGISTRY)/debian9-dev-arm:latest
-    platform: linux/arm/v7
-
-- template: stages/binary_build.yaml
-  parameters:
-    variantName: debian9
-    friendlyVariantName: debian9
-    architecture: arm64
-    containerPath: $(CONTAINER_REGISTRY)/debian9-dev-arm64:latest
-    platform: linux/arm64/v8
+- ${{ each target in parameters.buildTargets }}:
+  - template: stages/binary_build.yaml
+    parameters:
+      variantName: ${{ target.variantName }}
+      friendlyVariantName: ${{ target.friendlyVariantName }}
+      architecture: ${{ target.architecture }}
+      containerPath: ${{ target.containerPath }}
+      platform: ${{ target.platform }}
 
 - template: stages/binary_signing.yaml
   parameters:
@@ -139,3 +111,6 @@ stages:
     vaultName: $(VaultName)
     aadCertificateName: $(AADCertificateName)
     esrpCertificateName: $(ESRPCertificateName)
+    dependsOn:
+    - ${{ each target in parameters.buildTargets }}:
+      - binary_${{target.friendlyVariantName}}${{target.architecture }}
