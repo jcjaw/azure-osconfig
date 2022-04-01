@@ -104,4 +104,4 @@ stages:
     esrpCertificateName: $(ESRPCertificateName)
     dependsOn:
     - ${{ each target in parameters.buildTargets }}:
-      - binary_${{target.friendlyVariantName}}${{target.architecture }}
+      - binary_${{target.friendlyVariantName}}${{target.architecture}}
