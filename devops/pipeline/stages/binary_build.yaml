@@ -37,13 +37,12 @@ parameters:
 - name: publishArtifact
   type: boolean
   default: true
-
-  - name: packaging
-    type: string
-    default: deb
-    values:
-    - rpm
-    - deb
+- name: packaging
+  type: string
+  default: deb
+  values:
+  - rpm
+  - deb
 
 stages:
 - stage: ${{ parameters.prefix }}_${{ parameters.friendlyVariantName }}_${{ parameters.architecture }}
