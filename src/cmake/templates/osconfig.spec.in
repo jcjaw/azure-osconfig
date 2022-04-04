@@ -63,10 +63,10 @@ rm -rf $RPM_BUILD_ROOT
 %systemd_preun osconfig.service
 
 %post
-%systemd_post osconfig.service
 if [ ! -e /etc/aziot/identityd/config.d/osconfig.toml ]; then
     cp /etc/osconfig/osconfig.toml /etc/aziot/identityd/config.d/
 fi
+%systemd_post osconfig.service
 systemctl enable osconfig.service
 systemctl start osconfig.service
 
