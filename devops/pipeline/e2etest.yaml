@@ -81,7 +81,14 @@ parameters:
         sudo cp ./microsoft-prod.list /etc/apt/sources.list.d/ &&
         sudo apt update &&
         sudo apt install aziot-identity-service
-
+    - distroName: marinerV1
+      image_publisher: MicrosoftCBLMariner
+      image_offer: cbl-mariner
+      image_sku: cbl-mariner-1
+      image_version: latest
+      packagePattern: '**/*x86_64.rpm'
+      device_id: marinerv1
+      
 - name: baremetal_targets
   type: object
   default: []
