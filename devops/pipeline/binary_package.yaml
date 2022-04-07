@@ -3,13 +3,16 @@
 #  - Ubuntu 18.04
 #  - Ubuntu 20.04
 
-name: $(MajorVersion).$(MinorVersion).$(PatchVersion).$(Date:yyyyMMdd)$(Rev:rr)
-
 parameters:
   - name: performSigning
     type: boolean
     displayName: 'Perform code signing'
     default: true
+  - name: tweakVersion
+    display: Override Tweak version
+    default: $(Date:yyyyMMdd)$(Rev:rr)
+
+name: $(MajorVersion).$(MinorVersion).$(PatchVersion).${{ parameters.tweakVersion }}
 
 variables:
   SERVICE_CONNECTION: OSConfig-ACR
