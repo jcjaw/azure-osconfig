@@ -4,15 +4,15 @@
 #  - Ubuntu 20.04
 
 parameters:
-  - name: performSigning
-    type: boolean
-    displayName: 'Perform code signing'
-    default: true
-  - name: tweakVersion
-    type: number
-    displayName: 'Override Tweak version (default: YYYYMMDD00)'
+- name: performSigning
+  type: boolean
+  displayName: 'Perform code signing'
+  default: true
+- name: tweakVersion
+  type: number
+  displayName: 'Override Tweak version (default: YYYYMMDD00)'
 
-  name: $(MajorVersion).$(MinorVersion).$(PatchVersion).${{ coalesce(parameters.tweakVersion, $(Date:yyyyMMdd)$(Rev:rr)) }}
+name: $(MajorVersion).$(MinorVersion).$(PatchVersion).${{ coalesce(parameters.tweakVersion, $(Date:yyyyMMdd)$(Rev:rr)) }}
 
 variables:
   SERVICE_CONNECTION: OSConfig-ACR
