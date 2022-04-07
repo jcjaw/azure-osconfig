@@ -9,10 +9,13 @@ parameters:
     displayName: 'Perform code signing'
     default: true
   - name: tweakVersion
-    displayName: Override Tweak version
-    default: $(Date:yyyyMMdd)$(Rev:rr)
+    type: number
+    displayName: 'Override Tweak version (default: YYYYMMDD00)'
 
-name: $(MajorVersion).$(MinorVersion).$(PatchVersion).${{ parameters.tweakVersion }}
+- ${{ if ne(parameters.tweakVersion, '') }}:
+  name: $(MajorVersion).$(MinorVersion).$(PatchVersion).${{parameters.tweakVersion}}
+- ${{ else }}:
+  name: $(MajorVersion).$(MinorVersion).$(PatchVersion).$(Date:yyyyMMdd)$(Rev:rr)
 
 variables:
   SERVICE_CONNECTION: OSConfig-ACR
