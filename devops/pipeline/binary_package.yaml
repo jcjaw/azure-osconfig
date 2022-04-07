@@ -12,10 +12,7 @@ parameters:
     type: number
     displayName: 'Override Tweak version (default: YYYYMMDD00)'
 
-- ${{ if ne(parameters.tweakVersion, '') }}:
-  name: $(MajorVersion).$(MinorVersion).$(PatchVersion).${{parameters.tweakVersion}}
-- ${{ else }}:
-  name: $(MajorVersion).$(MinorVersion).$(PatchVersion).$(Date:yyyyMMdd)$(Rev:rr)
+  name: $(MajorVersion).$(MinorVersion).$(PatchVersion).${{ coalesce(parameters.tweakVersion, $(Date:yyyyMMdd)$(Rev:rr)) }}
 
 variables:
   SERVICE_CONNECTION: OSConfig-ACR
