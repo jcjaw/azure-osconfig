@@ -1,0 +1,35 @@
+name: Release
+
+on: [workflow_dispatch]
+
+jobs:
+  package:
+    name: Package
+    uses: ./.github/workflows/package.yml
+    with:
+      artifact: release
+      signed: true
+
+  release:
+    name: Release
+    environment: release
+    needs: [package]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: release-signed
+
+      - name: Publish to prod
+        uses: ./.github/actions/publish-package
+        # with:
+          # path:
+
+      # - name: Create Release
+      #   id: release
+      #   uses: actions/create-release@v1
+      #   with:
+      #     tag_name: ${{ github.ref }}
+      #     release_name: Release ${{ github.ref }}
+      #     draft: false
+      #     prerelease: false

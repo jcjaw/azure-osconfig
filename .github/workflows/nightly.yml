@@ -1,0 +1,64 @@
+name: Nightly
+
+on:
+  schedule:
+    - cron: "0 8 * * *"  # Every day at 8:00 am UTC
+
+jobs:
+  check-commits:
+    name: Check commits
+    runs-on: ubuntu-latest
+    outputs:
+      new: ${{ steps.commits.outputs.new }}
+    steps:
+      - name: Check commits
+        id: commits
+        run: |
+          date=$(gh api graphql -F owner='Azure' -F name='azure-osconfig' -f query='
+            query($name: String!, $owner: String!) {
+              repository(name: $name, owner: $owner) {
+                defaultBranchRef {
+                  target {
+                    ... on Commit {
+                      pushedDate
+                    }
+                  }
+                }
+              }
+            }' | jq .data.repository.defaultBranchRef.target.pushedDate | sed 's/"//g')
+
+          cutoff=$(date -d '1 day ago' +%s)
+          age=$(date -d "$date" +%s)
+          if (($age > $cutoff))
+          then
+            printf "Changes have been made in the last day"
+            echo '::set-output name=new::"true"'
+          else
+            printf "No changes have been made in the last day"
+            echo '::set-output name=new::"false"'
+          fi
+
+  package:
+    name: Package
+    needs: [check-commits]
+    if: needs.check-commits.outputs.new == 'true'
+    uses: ./.github/workflows/package.yml
+    with:
+      artifact: nightly
+      signed: true
+
+  nightly:
+    name: Publish Nightly
+    needs: [package]
+    # TODO: use self-hosted runner
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: nightly-signed
+
+      - name: Publish to insiders-fast
+        uses: ./.github/actions/publish-package
+        # with:
+        #   path:
+

@@ -1,0 +1,89 @@
+name: Publish Package
+description: Publishes a signed package
+
+# inputs:
+
+runs:
+  using: composite
+  steps:
+    # TODO: download artifacts
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Download certificates
+      uses: azure/CLI@v1
+      with:
+        inlineScript: |
+          END=`date -u -d "30 minutes" '+%Y-%m-%dT%H:%MZ'`
+          SAS_KEY=`az storage blob generate-sas -c azure-repoapi-client -n azure-repoapi-client_2.0.1_amd64.deb --account-name osconfig --account-key $(ACCOUNT_KEY) --permissions r --expiry $END --https-only --output tsv`
+          # TODO: setup mask for SAS_KEY
+          echo "##vso[task.setvariable variable=SAS_KEY]$SAS_KEY"
+
+    - name: Install repoclient
+      run: |
+        curl -o azure-repoapi-client_2.0.1_amd64.deb -O https://osconfig.blob.core.windows.net/azure-repoapi-client/azure-repoapi-client_2.0.1_amd64.deb?$SAS_KEY
+        sudo apt install ./azure-repoapi-client_2.0.1_amd64.deb
+      shell: bash
+
+    # TODO: replace ***** with environment secrets
+    - name: Create configuration
+      run: |
+        REPOCLIENT_CONFIG=~/.repoclient/config.json
+        mkdir -p ~/.repoclient
+        touch $REPOCLIENT_CONFIG
+        ln -s ~/.repoclient/config.json ~/.repoclient/prodconfig.json
+        cat <<EOF >$REPOCLIENT_CONFIG
+        {
+            "server": "azure-apt-cat.cloudapp.net",
+            "port": "443",
+            "AADClientId": "*****",
+            "AADClientCertificate": "/home/vsts/.repoclient/private.pem",
+            "AADResource": "https://microsoft.onmicrosoft.com/*****",
+            "AADTenant": "*****",
+            "AADAuthorityUrl": "https://login.microsoftonline.com",
+            "repositoryId": "osconfig"
+        }
+        EOF
+      shell: bash
+
+    # TODO: download signed artifacts
+
+    - name: Download submission Key
+      uses: azure/CLI@v1
+      with:
+        inlineScript: az keyvault secret download --encoding utf-8 --file ~/.repoclient/private.pem --name OSConfigPackaging --vault-name ens-comm-item-vault
+
+    # TODO: make this generic for any channel/set of packages
+    - name: Publish
+      run: |
+        # Publishes to the insiders-fast channel
+        # Validates a submissionId to ensure all packages are successfully submitted
+        function validate {
+          result=`repoclient -v v3 request check $1`
+          successCount=`echo $result | jq '.message.packages[] | select(.status == "Success")' | jq -s '. | length'`
+          totalCount=`echo $result | jq '.message.packages | length'`
+          echo Validated $1, totalCount=$totalCount, successCount=$successCount
+          if [[ $successCount != $totalCount ]]; then echo "Failed to publish" && exit 1; fi
+        }
+        # Ubuntu 20.04
+        result=`repoclient  -s pmc -v v3 package add ToSubmit/ubuntu2004 -r *****`
+        echo $result
+        submissionIdUbuntu2004=`echo $result | jq -r '.message.submissionId'`
+        # Ubuntu 18.04
+        result=`repoclient  -s pmc -v v3 package add ToSubmit/ubuntu1804 -r *****`
+        echo $result
+        submissionIdUbuntu1804=`echo $result | jq -r '.message.submissionId'`
+        # Debian 9
+        result=`repoclient  -s pmc -v v3 package add ToSubmit/debian9 -r *****`
+        echo $result
+        submissionIdDebian9=`echo $result | jq -r '.message.submissionId'`
+        # Sleep to ensure validation by ESRP occurs
+        sleep 10s
+        # Validate submissions
+        validate $submissionIdUbuntu2004
+        validate $submissionIdUbuntu1804
+        validate $submissionIdDebian9
+      shell: bash
