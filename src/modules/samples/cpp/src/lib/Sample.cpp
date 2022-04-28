@@ -70,36 +70,17 @@ int Sample::GetInfo(const char* clientName, MMI_JSON_STRING* payload, int* paylo
     }
     else
     {
-        try
+        std::size_t len = ARRAY_SIZE(info) - 1;
+        *payload = new (std::nothrow) char[len];
+        if (nullptr == *payload)
         {
-            std::size_t len = ARRAY_SIZE(info) - 1;
-            *payload = new (std::nothrow) char[len];
-            if (nullptr == *payload)
-            {
-                OsConfigLogError(SampleLog::Get(), "MmiGetInfo failed to allocate memory");
-                status = ENOMEM;
-            }
-            else
-            {
-                std::memcpy(*payload, info, len);
-                *payloadSizeBytes = len;
-            }
+            OsConfigLogError(SampleLog::Get(), "MmiGetInfo failed to allocate memory");
+            status = ENOMEM;
         }
-        catch (const std::exception& e)
+        else
         {
-            OsConfigLogError(SampleLog::Get(), "MmiGetInfo exception thrown: %s", e.what());
-            status = EINTR;
-
-            if (nullptr != *payload)
-            {
-                delete[] * payload;
-                *payload = nullptr;
-            }
-
-            if (nullptr != payloadSizeBytes)
-            {
-                *payloadSizeBytes = 0;
-            }
+            std::memcpy(*payload, info, len);
+            *payloadSizeBytes = len;
         }
     }
 
@@ -700,37 +681,18 @@ int Sample::SerializeJsonPayload(rapidjson::Document& document, MMI_JSON_STRING*
 int Sample::CopyJsonPayload(rapidjson::StringBuffer& buffer, MMI_JSON_STRING* payload, int* payloadSizeBytes)
 {
     int status = MMI_OK;
+    *payload = new (std::nothrow) char[buffer.GetSize()];
 
-    try
+    if (nullptr == *payload)
     {
-        *payload = new (std::nothrow) char[buffer.GetSize()];
-        if (nullptr == *payload)
-        {
-            OsConfigLogError(SampleLog::Get(), "Unable to allocate memory for payload");
-            status = ENOMEM;
-        }
-        else
-        {
-            std::fill(*payload, *payload + buffer.GetSize(), 0);
-            std::memcpy(*payload, buffer.GetString(), buffer.GetSize());
-            *payloadSizeBytes = buffer.GetSize();
-        }
+        OsConfigLogError(SampleLog::Get(), "Unable to allocate memory for payload");
+        status = ENOMEM;
     }
-    catch (const std::exception& e)
+    else
     {
-        OsConfigLogError(SampleLog::Get(), "Could not allocate payload: %s", e.what());
-        status = EINTR;
-
-        if (nullptr != *payload)
-        {
-            delete[] *payload;
-            *payload = nullptr;
-        }
-
-        if (nullptr != payloadSizeBytes)
-        {
-            *payloadSizeBytes = 0;
-        }
+        std::fill(*payload, *payload + buffer.GetSize(), 0);
+        std::memcpy(*payload, buffer.GetString(), buffer.GetSize());
+        *payloadSizeBytes = buffer.GetSize();
     }
 
     return status;
