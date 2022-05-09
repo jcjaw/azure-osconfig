@@ -1,11 +1,6 @@
 name: Package
 
-on:
-  push:
-    branches:
-      - main
-    paths:
-      - src/**
+on: [push]
 
 jobs:
   package:

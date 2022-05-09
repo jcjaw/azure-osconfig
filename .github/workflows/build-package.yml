@@ -39,7 +39,9 @@ on:
 jobs:
   package:
     name: Package
-    runs-on: ubuntu-latest
+    runs-on:
+      - self-hosted
+      - 1ES.Pool=osconfig-github-linux-runner-pool
     strategy:
       fail-fast: false
       matrix:
@@ -97,7 +99,9 @@ jobs:
 
   signing:
     name: Signing
-    runs-on: windows-latest
+    runs-on:
+      - self-hosted
+      - 1ES.Pool=osconfig-github-windows-runner-pool
     if: inputs.signed
     needs: [package]
     environment:
