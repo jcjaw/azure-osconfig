@@ -45,7 +45,7 @@ variable "vm_size" {
 }
 
 variable "location" {
-    default = "West US 2"
+    default = "eastus"
 }
 
 variable "github_runner_tar_gz_package" {
