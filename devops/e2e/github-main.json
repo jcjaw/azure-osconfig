@@ -42,7 +42,7 @@
         "image_publisher": "osconfig",
         "image_offer": "debian",
         "image_sku": "9",
-        "image_version": "latest",
+        "image_version": "1.0.0",
         "device_id": "debian9",
         "package_path": "*stretch_x86_64.deb",
         "vm_size": "Standard_DS1_v2",
