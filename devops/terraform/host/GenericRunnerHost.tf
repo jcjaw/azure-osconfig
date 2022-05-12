@@ -156,13 +156,14 @@ resource "azurerm_linux_virtual_machine" "osconfigvm" {
     inline = [
       "export DEBIAN_FRONTEND=noninteractive",
       "sudo systemctl stop apt-daily.timer && sudo systemctl disable apt-daily.timer && sudo systemctl mask apt-daily.service && sudo systemctl daemon-reload",
-      "sudo apt update && sudo apt install -y ca-certificates curl apt-transport-https lsb-release gnupg",
+      "sudo apt update && sudo apt install -y ca-certificates curl apt-transport-https lsb-release gnupg fuser",
       "curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg",
       "sudo cp ./microsoft.gpg /etc/apt/trusted.gpg.d/",
       "mkdir actions-runner && cd actions-runner && curl -o runner.tar.gz -L ${var.github_runner_tar_gz_package} && tar xzf ./runner.tar.gz",
       "./config.sh --url https://github.com/Azure/azure-osconfig --unattended --ephemeral --name \"${var.resource_group_name}-${var.vm_name}\" --token \"${var.runner_token}\" --labels \"${var.resource_group_name}-${var.vm_name}\"",
       "sudo ./svc.sh install",
       "sudo ./svc.sh start",
+      "while sudo fuser /var/{lib/{dpkg,apt/lists},cache/apt/archives}/lock >/dev/null 2>&1; do echo 'Waiting for release of dpkg/apt locks'; sleep 5; done",
       "echo \"####################### VM Script #######################\"",
       var.vm_script,
       "echo \"#########################################################\""
