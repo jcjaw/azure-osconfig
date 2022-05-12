@@ -163,7 +163,7 @@ resource "azurerm_linux_virtual_machine" "osconfigvm" {
       "./config.sh --url https://github.com/Azure/azure-osconfig --unattended --ephemeral --name \"${var.resource_group_name}-${var.vm_name}\" --token \"${var.runner_token}\" --labels \"${var.resource_group_name}-${var.vm_name}\"",
       "sudo ./svc.sh install",
       "sudo ./svc.sh start",
-      "function wait_for_locks () { while sudo fuser /var/{lib/{dpkg,apt/lists},cache/apt/archives}/lock >/dev/null 2>&1; do echo 'Waiting for release of dpkg/apt locks'; sleep 5; done }",
+      "function wait_for_locks { while sudo fuser /var/{lib/{dpkg,apt/lists},cache/apt/archives}/lock >/dev/null 2>&1; do echo 'Waiting for release of dpkg/apt locks'; sleep 5; done }",
       "wait_for_locks",
       "echo \"####################### VM Script #######################\"",
       var.vm_script,
