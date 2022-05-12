@@ -80,10 +80,10 @@ jobs:
           az extension add --name azure-iot
           
           # VM + IotHub provisioning happening in parallel - loop until the IoT Hub is available
-          echo -n 'Creating Iot Hub Identity - ${{ inputs.resourceGroupName }}-${{ steps.provision-vm.outputs.device_id }}'
+          echo 'Creating Iot Hub Identity - ${{ inputs.resourceGroupName }}-${{ steps.provision-vm.outputs.device_id }}'
           function create_identity () { az iot hub device-identity create --device-id "${{ steps.provision-vm.outputs.device_id }}" --hub-name ${{ inputs.resourceGroupName }}-iothub --output none; }
           create_identity
-          while [ $? -ne 0 ]; do echo -n '.'; sleep 5s && create_identity; done
+          while [ $? -ne 0 ]; do echo 'Hub unavailable, sleeping 5s...'; sleep 5s; create_identity; done
 
           device_conn_str="`az iot hub device-identity connection-string show --hub-name ${{ inputs.resourceGroupName }}-iothub --device-id ${{ steps.provision-vm.outputs.device_id }} --output tsv`"
           echo '' && echo Adding to Key Vault
