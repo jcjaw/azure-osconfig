@@ -149,7 +149,7 @@ resource "azurerm_linux_virtual_machine" "osconfigvm" {
     sku       = var.image_sku
     version   = var.image_version
   }
-  source_image_id = var.image_name != null ? data.azurerm_shared_image.customimage.id : null
+  source_image_id = data.azurerm_shared_image.customimage.count > 0 ? data.azurerm_shared_image.customimage.id : null
 
   computer_name                   = "myvm-${var.vm_name}"
   admin_username                  = "azureuser"
