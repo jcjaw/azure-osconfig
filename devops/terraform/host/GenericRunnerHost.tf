@@ -18,12 +18,12 @@ provider "azurerm" {
   client_secret = var.client_secret
 }
 
-variable "marketplace_image" {
-  publisher = var.image_publisher
-  offer     = var.image_offer
-  sku       = var.image_sku
-  version   = var.image_version
-}
+# variable "marketplace_image" {
+#   publisher = var.image_publisher
+#   offer     = var.image_offer
+#   sku       = var.image_sku
+#   version   = var.image_version
+# }
 
 data "azurerm_shared_image" "customimage" {
   count               = var.imageName == "" ? 0 : 1
@@ -143,7 +143,12 @@ resource "azurerm_linux_virtual_machine" "osconfigvm" {
   # Only works for Public Azure Marketplace images
   # Must use source_image_id for private images
   # see https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/shared_image
-  source_image_reference = var.imageName != null ? null : marketplace_image
+  source_image_reference = var.imageName != null ? null : {
+    publisher = var.image_publisher
+    offer     = var.image_offer
+    sku       = var.image_sku
+    version   = var.image_version
+  }
   source_image_id = var.imageName != null ? data.azurerm_shared_image.customimage.id : null
 
   computer_name                   = "myvm-${var.vm_name}"
