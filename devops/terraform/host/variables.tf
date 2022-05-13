@@ -9,6 +9,14 @@ variable resource_group_name_prefix {
 }
 variable "runner_token" {}
 
+# For making use of Azure Compute Gallery
+variable "imageName" {
+    default = ""
+}
+variable "gallery_name" {
+    default = ""
+}
+
 # Provided by iothub.tf outputs
 variable resource_group_name {}
 

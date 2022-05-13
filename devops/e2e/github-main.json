@@ -15,7 +15,7 @@
             "curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list > ./microsoft-prod.list",
             "sudo cp ./microsoft-prod.list /etc/apt/sources.list.d/",
             "AZ_REPO=$(lsb_release -cs) && echo \"deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $AZ_REPO main\" | sudo tee /etc/apt/sources.list.d/azure-cli.list",
-            "sudo apt update && wait_for_locks",
+            "sudo apt update && sleep 30s",
             "sudo apt install -y jq aziot-identity-service azure-cli"
         ]
     },
@@ -35,8 +35,25 @@
             "curl https://packages.microsoft.com/config/ubuntu/18.04/multiarch/prod.list > ./microsoft-prod.list",
             "sudo cp ./microsoft-prod.list /etc/apt/sources.list.d/",
             "AZ_REPO=$(lsb_release -cs) && echo \"deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $AZ_REPO main\" | sudo tee /etc/apt/sources.list.d/azure-cli.list",
-            "sudo apt update && wait_for_locks",
+            "sudo apt update && sleep 30s",
             "sudo apt install -y jq aziot-identity-service azure-cli"
+        ]
+    },
+    {
+        "distroName": "debian9",
+        "image_name": "debian_9",
+        "gallery_name": "osconfigvms",
+        "device_id": "debian9",
+        "package_path": "*stretch_x86_64.deb",
+        "vm_size": "Standard_DS1_v2",
+        "test_filter": "TpmTest",
+        "github_runner_tar_gz": "https://github.com/actions/runner/releases/download/v2.291.1/actions-runner-linux-x64-2.291.1.tar.gz",
+        "vm_script":
+        [
+            "curl https://packages.microsoft.com/config/ubuntu/18.04/multiarch/prod.list > ./microsoft-prod.list",
+            "sudo cp ./microsoft-prod.list /etc/apt/sources.list.d/",
+            "sudo apt update && sleep 30s",
+            "sudo apt install -y jq aziot-identity-service"
         ]
     },
     {

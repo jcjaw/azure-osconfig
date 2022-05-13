@@ -18,6 +18,20 @@ provider "azurerm" {
   client_secret = var.client_secret
 }
 
+variable "marketplace_image" {
+  publisher = var.image_publisher
+  offer     = var.image_offer
+  sku       = var.image_sku
+  version   = var.image_version
+}
+
+data "azurerm_shared_image" "customimage" {
+  count               = var.imageName == "" ? 0 : 1
+  name                = var.imageName
+  gallery_name        = var.gallery_name
+  resource_group_name = "osconfige2e-test-infra"
+}
+
 # Create public IPs
 resource "azurerm_public_ip" "osconfigpublicip" {
   name                = "myPublicIP-${var.vm_name}"
@@ -126,12 +140,11 @@ resource "azurerm_linux_virtual_machine" "osconfigvm" {
     storage_account_type = "Premium_LRS"
   }
 
-  source_image_reference {
-    publisher = var.image_publisher
-    offer     = var.image_offer
-    sku       = var.image_sku
-    version   = var.image_version
-  }
+  # Only works for Public Azure Marketplace images
+  # Must use source_image_id for private images
+  # see https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/shared_image
+  source_image_reference = var.imageName != null ? null : marketplace_image
+  source_image_id = var.imageName != null ? data.azurerm_shared_image.customimage.id : null
 
   computer_name                   = "myvm-${var.vm_name}"
   admin_username                  = "azureuser"
@@ -163,7 +176,7 @@ resource "azurerm_linux_virtual_machine" "osconfigvm" {
       "./config.sh --url https://github.com/Azure/azure-osconfig --unattended --ephemeral --name \"${var.resource_group_name}-${var.vm_name}\" --token \"${var.runner_token}\" --labels \"${var.resource_group_name}-${var.vm_name}\"",
       "sudo ./svc.sh install",
       "sudo ./svc.sh start",
-      "wait_for_locks () { while [[ $(sudo fuser /var/{lib/{dpkg,apt/lists},cache/apt/archives}/lock >/dev/null 2>&1) -gt 0 ]]; do echo 'Waiting for release of dpkg/apt locks'; sleep 5; done; } && wait_for_locks",
+      # "wait_for_locks () { while [[ $(sudo fuser /var/{lib/{dpkg,apt/lists},cache/apt/archives}/lock >/dev/null 2>&1) -gt 0 ]]; do echo 'Waiting for release of dpkg/apt locks'; sleep 5; done; } && wait_for_locks",
       "echo \"####################### VM Script #######################\"",
       var.vm_script,
       "echo \"#########################################################\""
@@ -176,5 +189,5 @@ resource "azurerm_linux_virtual_machine" "osconfigvm" {
 }
 
 output "resource_group_name" {
-    value = var.resource_group_name
+  value = var.resource_group_name
 }
