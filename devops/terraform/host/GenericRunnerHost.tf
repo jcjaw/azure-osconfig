@@ -19,12 +19,12 @@ provider "azurerm" {
 }
 
 locals {
-  marketplace_image {
-  publisher = var.image_publisher
-  offer     = var.image_offer
-  sku       = var.image_sku
-  version   = var.image_version
-}
+  marketplace_image = {
+    publisher = var.image_publisher
+    offer     = var.image_offer
+    sku       = var.image_sku
+    version   = var.image_version
+  }
 }
 # variable "marketplace_image" {
 #   publisher = var.image_publisher
@@ -156,8 +156,8 @@ resource "azurerm_linux_virtual_machine" "osconfigvm" {
 
   }
 
-  source_image_reference = (var.image_name != null ? {} : marketplace_image)
-  source_image_id = length(data.azurerm_shared_image.customimage) > 0 ? data.azurerm_shared_image.customimage[0].id : null
+  source_image_reference = (var.image_name != null ? null : marketplace_image)
+  source_image_id        = length(data.azurerm_shared_image.customimage) > 0 ? data.azurerm_shared_image.customimage[0].id : null
 
   computer_name                   = "myvm-${var.vm_name}"
   admin_username                  = "azureuser"
