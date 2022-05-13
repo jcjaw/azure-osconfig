@@ -10,7 +10,7 @@ variable resource_group_name_prefix {
 variable "runner_token" {}
 
 # For making use of Azure Compute Gallery
-variable "imageName" {
+variable "image_name" {
     default = ""
 }
 variable "gallery_name" {
