@@ -143,7 +143,7 @@ resource "azurerm_linux_virtual_machine" "osconfigvm" {
   # Only works for Public Azure Marketplace images
   # Must use source_image_id for private images
   # see https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/shared_image
-  source_image_reference = var.image_name != null ? null : {
+  source_image_reference = var.image_name != null ? {} : {
     publisher = var.image_publisher
     offer     = var.image_offer
     sku       = var.image_sku
