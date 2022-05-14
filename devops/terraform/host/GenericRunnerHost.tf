@@ -152,7 +152,7 @@ resource "azurerm_linux_virtual_machine" "osconfigvm" {
   # Must use source_image_id for private images
   # see https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/shared_image
   dynamic "source_image_reference" {
-    for_each = (length(azurerm_shared_image.customimage) > 0 ? marketplace_image : {})
+    for_each = (length(data.azurerm_shared_image.customimage) > 0 ? marketplace_image : {})
     content {
       publisher = var.image_publisher
       offer     = var.image_offer
