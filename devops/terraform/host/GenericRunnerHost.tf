@@ -19,12 +19,12 @@ provider "azurerm" {
 }
 
 locals {
-  marketplace_image = {
+  marketplace_image = [{
     publisher = var.image_publisher
     offer     = var.image_offer
     sku       = var.image_sku
     version   = var.image_version
-  }
+  }]
 }
 # variable "marketplace_image" {
 #   publisher = var.image_publisher
@@ -152,11 +152,14 @@ resource "azurerm_linux_virtual_machine" "osconfigvm" {
   # Must use source_image_id for private images
   # see https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/shared_image
   dynamic "source_image_reference" {
-    for_each = (var.ssh_enabled ? local.ssh_keys : {})
-
+    for_each = (length(azurerm_shared_image.customimage) > 0 ? marketplace_image : {})
+    content {
+      publisher = var.image_publisher
+      offer     = var.image_offer
+      sku       = var.image_sku
+      version   = var.image_version
+    }
   }
-
-  source_image_reference = (var.image_name != null ? null : marketplace_image)
   source_image_id        = length(data.azurerm_shared_image.customimage) > 0 ? data.azurerm_shared_image.customimage[0].id : null
 
   computer_name                   = "myvm-${var.vm_name}"
