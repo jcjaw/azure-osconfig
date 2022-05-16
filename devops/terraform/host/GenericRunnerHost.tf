@@ -18,6 +18,28 @@ provider "azurerm" {
   client_secret = var.client_secret
 }
 
+locals {
+  marketplace_image = [{
+    publisher = var.image_publisher
+    offer     = var.image_offer
+    sku       = var.image_sku
+    version   = var.image_version
+  }]
+}
+# variable "marketplace_image" {
+#   publisher = var.image_publisher
+#   offer     = var.image_offer
+#   sku       = var.image_sku
+#   version   = var.image_version
+# }
+
+data "azurerm_shared_image" "customimage" {
+  count               = var.image_name == "" ? 0 : 1
+  name                = var.image_name
+  gallery_name        = var.gallery_name
+  resource_group_name = "osconfige2e-test-infra"
+}
+
 # Create public IPs
 resource "azurerm_public_ip" "osconfigpublicip" {
   name                = "myPublicIP-${var.vm_name}"
@@ -126,12 +148,19 @@ resource "azurerm_linux_virtual_machine" "osconfigvm" {
     storage_account_type = "Premium_LRS"
   }
 
-  source_image_reference {
-    publisher = var.image_publisher
-    offer     = var.image_offer
-    sku       = var.image_sku
-    version   = var.image_version
+  # Only works for Public Azure Marketplace images
+  # Must use source_image_id for private images
+  # see https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/shared_image
+  dynamic "source_image_reference" {
+    for_each = (length(data.azurerm_shared_image.customimage) == 0 ? ["1"] : [])
+    content {
+      publisher = var.image_publisher
+      offer     = var.image_offer
+      sku       = var.image_sku
+      version   = var.image_version
+    }
   }
+  source_image_id        = length(data.azurerm_shared_image.customimage) > 0 ? data.azurerm_shared_image.customimage[0].id : null
 
   computer_name                   = "myvm-${var.vm_name}"
   admin_username                  = "azureuser"
@@ -156,13 +185,14 @@ resource "azurerm_linux_virtual_machine" "osconfigvm" {
     inline = [
       "export DEBIAN_FRONTEND=noninteractive",
       "sudo systemctl stop apt-daily.timer && sudo systemctl disable apt-daily.timer && sudo systemctl mask apt-daily.service && sudo systemctl daemon-reload",
-      "sudo apt update && sudo apt install -y ca-certificates curl apt-transport-https lsb-release gnupg",
+      "sudo apt update && sudo apt install -y ca-certificates curl apt-transport-https lsb-release gnupg fuser",
       "curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg",
       "sudo cp ./microsoft.gpg /etc/apt/trusted.gpg.d/",
       "mkdir actions-runner && cd actions-runner && curl -o runner.tar.gz -L ${var.github_runner_tar_gz_package} && tar xzf ./runner.tar.gz",
       "./config.sh --url https://github.com/Azure/azure-osconfig --unattended --ephemeral --name \"${var.resource_group_name}-${var.vm_name}\" --token \"${var.runner_token}\" --labels \"${var.resource_group_name}-${var.vm_name}\"",
       "sudo ./svc.sh install",
       "sudo ./svc.sh start",
+      # "wait_for_locks () { while [[ $(sudo fuser /var/{lib/{dpkg,apt/lists},cache/apt/archives}/lock >/dev/null 2>&1) -gt 0 ]]; do echo 'Waiting for release of dpkg/apt locks'; sleep 5; done; } && wait_for_locks",
       "echo \"####################### VM Script #######################\"",
       var.vm_script,
       "echo \"#########################################################\""
@@ -175,5 +205,5 @@ resource "azurerm_linux_virtual_machine" "osconfigvm" {
 }
 
 output "resource_group_name" {
-    value = var.resource_group_name
+  value = var.resource_group_name
 }
