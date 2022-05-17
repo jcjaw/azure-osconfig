@@ -5,6 +5,7 @@
 #define MIMPARSER_H
 
 #include <map>
+#include <vector>
 
 // define a MimObject interface
 
@@ -13,6 +14,8 @@
 // ComponentName	String	Name of the MIM component.
 // ObjectName	String	Name of the MIM object.
 // Desired	Boolean	True means desired object and false means reported object.
+
+// TestRecipe
 // Payload	String	The JSON payload as escaped JSON. For a desired object this is the desired payload for MmiSet. For a reported object this is the expected reported payload for MmiGet or “<dynamic>” (TBD) meaning dynamic payload that cannot be already known by the test. 
 // PayloadSizeBytes	Integer	The size of the payload, in bytes. 
 // ExpectedResult	Integer	The expected result (such as MMI_OK).
@@ -20,14 +23,26 @@
 
 class MimParser
 {
+public:
+    struct MimObject
+    {
+        std::string name;
+        std::string type;
+        bool desired;
+    };
+
+    void ParseMim(std::string path);
+
 private:
     /* data */
-    // Map of components
-    std::map<std::string, std::string> m_components;
-    // map of MimObjects + types
-    std::map<std::string, std::string> m_types;
-public:
+    // Map of Components / MimObjects
+    std::map<std::string, std::vector<MimObject>> m_components;
     
 };
+
+int main()
+{
+    return 0;
+}
 
 #endif //MIMPARSER_H
