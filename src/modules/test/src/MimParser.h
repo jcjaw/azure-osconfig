@@ -4,6 +4,8 @@
 #ifndef MIMPARSER_H
 #define MIMPARSER_H
 
+#include <map>
+
 // define a MimObject interface
 
 // TODO: Must make sure reported object is present if defined. Create testrecipe with them.
