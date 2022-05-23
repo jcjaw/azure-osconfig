@@ -1,6 +1,9 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+#ifndef TPM_UTILS_H
+#define TPM_UTILS_H
+
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -74,7 +77,7 @@ public:
         if ((dataLength > (inputBufSize - dataOffset)) && (status == MMI_OK))
         {
             if (IsFullLoggingEnabled())
-            {   
+            {
                 OsConfigLogError(TpmLog::Get(), "Invalid argument, dataLength %u must be less than or equal to %i", dataLength, inputBufSize - dataOffset);
             }
             status = EINVAL;
@@ -87,7 +90,7 @@ public:
             }
             status = EINVAL;
         }
-        
+
         if (status == MMI_OK)
         {
             *output = 0;
@@ -131,7 +134,7 @@ public:
             }
         }
 
-        return status; 
+        return status;
     }
 
     static int GetTpmPropertyFromBuffer(uint8_t* buf, ssize_t bufSize, const char* objectName, std::string& tpmProperty)
@@ -230,7 +233,7 @@ public:
 
         if (status == MMI_OK)
         {
-            memset(response, 0, TPM_RESPONSE_MAX_SIZE);
+            memset(response, 0xFF, TPM_RESPONSE_MAX_SIZE);
 
             tpm = open(TPM_PATH, O_RDWR);
             if (TPM_COMMUNICATION_ERROR == tpm)
@@ -283,3 +286,5 @@ public:
         return status;
     }
 };
+
+#endif // TPM_UTILS_H
