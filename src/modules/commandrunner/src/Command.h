@@ -1,8 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-#ifndef COMMAND_H
-#define COMMAND_H
+#pragma once
 
 #include <cstring>
 #include <mutex>
@@ -25,30 +24,6 @@ const std::string g_commandStatus = "commandStatus";
 const std::string g_resultCode = "resultCode";
 const std::string g_textResult = "textResult";
 const std::string g_currentState = "currentState";
-
-#define COMMANDRUNNER_LOGFILE "/var/log/osconfig_commandrunner.log"
-#define COMMADRUNNER_ROLLEDLOGFILE "/var/log/osconfig_commandrunner.bak"
-
-class CommandRunnerLog
-{
-public:
-    static OSCONFIG_LOG_HANDLE Get()
-    {
-        return m_log;
-    }
-
-    static void OpenLog()
-    {
-        m_log = ::OpenLog(COMMANDRUNNER_LOGFILE, COMMADRUNNER_ROLLEDLOGFILE);
-    }
-
-    static void CloseLog()
-    {
-        ::CloseLog(&m_log);
-    }
-
-    static OSCONFIG_LOG_HANDLE m_log;
-};
 
 class Command
 {
@@ -140,5 +115,3 @@ public:
 
     int Execute(unsigned int maxPayloadSizeBytes) override;
 };
-
-#endif // COMMAND_H

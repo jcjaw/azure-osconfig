@@ -11,8 +11,6 @@ static const char alphanum[] = "0123456789"\
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ"\
     "abcdefghijklmnopqrstuvwxyz";
 
-OSCONFIG_LOG_HANDLE CommandRunnerLog::m_log = nullptr;
-
 template<typename T>
 int DeserializeMember(const rapidjson::Value& document, const std::string key, T& value);
 

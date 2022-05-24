@@ -1,8 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-#ifndef COMMANDRUNNER_H
-#define COMMANDRUNNER_H
+#pragma once
 
 #include <condition_variable>
 #include <map>
@@ -106,5 +105,3 @@ private:
     static int WriteFile(const std::string& fileName, const rapidjson::StringBuffer& buffer);
     static int CopyJsonPayload(MMI_JSON_STRING* payload, int* payloadSizeBytes, const rapidjson::StringBuffer& buffer);
 };
-
-#endif // COMMANDRUNNER_H
