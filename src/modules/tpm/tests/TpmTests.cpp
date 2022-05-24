@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 #include <gtest/gtest.h>
+#include <Tpm.h>
 #include <Tpm2Utils.h>
 #include <Mmi.h>
 
@@ -94,15 +95,14 @@ namespace OSConfig::Platform::Tests
     TEST(TpmTests, GetStatus)
     {
         TestTpm tpm(maxPayloadSizeBytes);
+        Tpm::Status status = Tpm::Status::Unknown;
         tpm.m_commandOutput.push_back(tpmDeviceDirectory);
 
-        std::string data;
-        tpm.GetStatus(data);
-        EXPECT_STREQ(data.c_str(), tpmDetected.c_str());
+        status = tpm.GetStatus();
+        EXPECT_EQ(Tpm::Status::TpmDetected, status);
 
-        data.clear();
-        tpm.GetStatus(data);
-        EXPECT_STREQ(data.c_str(), tpmNotDetected.c_str());
+        status = tpm.GetStatus();
+        EXPECT_EQ(Tpm::Status::TpmNotDetected, status);
     }
 
     TEST(TpmTests, GetVersionFromCapabilitiesFile)
@@ -111,12 +111,11 @@ namespace OSConfig::Platform::Tests
         tpm.m_commandOutput.push_back(tpmDetails);
 
         std::string data;
-        tpm.GetVersionFromCapabilitiesFile(data);
+        data = tpm.GetVersionFromCapabilitiesFile();
         EXPECT_STREQ(data.c_str(), tpmVersionNumber);
 
-        data.clear();
         tpm.m_commandOutput.push_back(tpmDetailsLeadingAndTrailingWhitespace);
-        tpm.GetVersionFromCapabilitiesFile(data);
+        data = tpm.GetVersionFromCapabilitiesFile();
         EXPECT_STREQ(data.c_str(), tpmVersionNumber);
     }
 
@@ -126,17 +125,17 @@ namespace OSConfig::Platform::Tests
         tpm.m_commandOutput.push_back(tpmDetails);
 
         std::string data;
-        tpm.GetManufacturerFromCapabilitiesFile(data);
+        data = tpm.GetManufacturerFromCapabilitiesFile();
         EXPECT_STREQ(data.c_str(), tpmManufacturerNameSTMicroelectronics);
 
         data.clear();
         tpm.m_commandOutput.push_back(tpmDetailsLeadingAndTrailingWhitespace);
-        tpm.GetManufacturerFromCapabilitiesFile(data);
+        data = tpm.GetManufacturerFromCapabilitiesFile();
         EXPECT_STREQ(data.c_str(), tpmManufacturerNameSTMicroelectronics);
 
         data.clear();
         tpm.m_commandOutput.push_back(tpmDetailsManufacturerNameLong);
-        tpm.GetManufacturerFromCapabilitiesFile(data);
+        data = tpm.GetManufacturerFromCapabilitiesFile();
         EXPECT_STREQ(data.c_str(), tpmManufacturerNameLong);
     }
 
@@ -147,7 +146,7 @@ namespace OSConfig::Platform::Tests
         int payloadSizeBytes = 0;
 
         TestTpm tpm(maxPayloadSizeBytes);
-        EXPECT_EQ(tpm.Get(objectNameUnknown, &payload, &payloadSizeBytes), EINVAL);
+        EXPECT_EQ(tpm.Get(TPM, objectNameUnknown, &payload, &payloadSizeBytes), EINVAL);
         EXPECT_EQ(payload, nullptr);
         EXPECT_EQ(payloadSizeBytes, 0);
     }

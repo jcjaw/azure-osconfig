@@ -4,7 +4,19 @@
 #include <algorithm>
 #include <cstdio>
 #include <regex>
+
 #include <Tpm2Utils.h>
+
+constexpr const char g_moduleInfo[] = R""""({
+    "Name": "Tpm",
+    "Description": "Provides functionality to remotely query the TPM on device",
+    "Manufacturer": "Microsoft",
+    "VersionMajor": 1,
+    "VersionMinor": 0,
+    "VersionInfo": "Nickel",
+    "Components": ["Tpm"],
+    "Lifetime": 1,
+    "UserAccount": 0})"""";
 
 const char* g_getTpmDetected = "ls -d /dev/tpm[0-9]";
 const char* g_getTpmrmDetected = "ls -d /dev/tpm[r][m][0-9]";
@@ -14,8 +26,7 @@ const char* g_tpmVersionFromCapabilitiesFile = "TCG\\s+version:\\s+";
 const char* g_tpmManufacturerFromCapabilitiesFile = "Manufacturer:\\s+0x";
 const char* g_tpmVersionFromDeviceFile = "\\d(.\\d)?";
 const char* g_tpmManufacturerFromDeviceFile = "[\\w\\s]+";
-const char g_quotationCharacter = char('"');
-
+const char* g_quotationCharacter = "\"";
 
 OSCONFIG_LOG_HANDLE TpmLog::m_logTpm = nullptr;
 
@@ -25,6 +36,44 @@ Tpm::Tpm(const unsigned int maxPayloadSizeBytes) : m_maxPayloadSizeBytes(maxPayl
 }
 
 Tpm::~Tpm() {}
+
+int Tpm::GetInfo(const char* clientName, MMI_JSON_STRING* payload, int* payloadSizeBytes)
+{
+    int status = MMI_OK;
+
+    if (nullptr == clientName)
+    {
+        OsConfigLogError(TpmLog::Get(), "Invalid clientName");
+        status = EINVAL;
+    }
+    else if (nullptr == payload)
+    {
+        OsConfigLogError(TpmLog::Get(), "Invalid payload");
+        status = EINVAL;
+    }
+    else if (nullptr == payloadSizeBytes)
+    {
+        OsConfigLogError(TpmLog::Get(), "Invalid payloadSizeBytes");
+        status = EINVAL;
+    }
+    else
+    {
+        std::size_t len = ARRAY_SIZE(g_moduleInfo) - 1;
+        *payload = new (std::nothrow) char[len];
+        if (nullptr == *payload)
+        {
+            OsConfigLogError(TpmLog::Get(), "Failed to allocate memory for payload");
+            status = ENOMEM;
+        }
+        else
+        {
+            std::memcpy(*payload, g_moduleInfo, len);
+            *payloadSizeBytes = len;
+        }
+    }
+
+    return status;
+}
 
 std::string Tpm::RunCommand(const char* command)
 {
@@ -38,100 +87,103 @@ std::string Tpm::RunCommand(const char* command)
         commandOutput = (nullptr != textResult) ? std::string(textResult) : "";
     }
 
-    if (nullptr != textResult)
-    {
-        free(textResult);
-    }
+    FREE_MEMORY(textResult);
 
     return commandOutput;
 }
 
-int Tpm::Get(const char* objectName, MMI_JSON_STRING* payload, int* payloadSizeBytes)
+int Tpm::Get(const char* componentName, const char* objectName, MMI_JSON_STRING* payload, int* payloadSizeBytes)
 {
     int status = MMI_OK;
     std::string data;
 
-    if ((std::strcmp(objectName, TPM_STATUS) == 0) || (std::strcmp(objectName, TPM_VERSION) == 0) || (std::strcmp(objectName, TPM_MANUFACTURER) == 0))
+    if (0 == std::strcmp(TPM, componentName))
     {
-        if (std::strcmp(objectName, TPM_STATUS) == 0)
+        if (0 == std::strcmp(TPM_STATUS, objectName))
         {
-            GetStatus(data);
+            data = std::to_string(static_cast<int>(GetStatus()));
         }
-        else if ((std::strcmp(objectName, TPM_VERSION) == 0) && (this->m_hasCapabilitiesFile))
+        else if ((0 == std::strcmp(TPM_VERSION, objectName)) && (this->m_hasCapabilitiesFile))
         {
-            GetVersionFromCapabilitiesFile(data);
+            std::string tpmProperty;
+            std::string version = GetVersionFromCapabilitiesFile();
+
+            if (version.empty())
+            {
+                if (MMI_OK == (status = Tpm2Utils::GetTpmPropertyFromDeviceFile(objectName, tpmProperty)))
+                {
+                    std::regex re(g_tpmVersionFromDeviceFile);
+                    std::smatch match;
+                    if (std::regex_search(tpmProperty, match, re))
+                    {
+                        // version = match[0].str();
+                        OsConfigLogInfo(TpmLog::Get(), "Tpm::Get: version: %s", tpmProperty.c_str());
+                    }
+                }
+            }
+            else
+            {
+                OsConfigLogError(TpmLog::Get(), "Version %d", status);
+            }
+
+            data = "\"" + version + "\"";
         }
-        else if ((std::strcmp(objectName, TPM_MANUFACTURER) == 0) && (this->m_hasCapabilitiesFile))
+        else if ((0 == std::strcmp(TPM_MANUFACTURER, objectName)) && (this->m_hasCapabilitiesFile))
         {
-            GetManufacturerFromCapabilitiesFile(data);
+            std::string tpmProperty;
+            std::string manufacturer = GetManufacturerFromCapabilitiesFile();
+
+            if (manufacturer.empty())
+            {
+                if (MMI_OK == (status = Tpm2Utils::GetTpmPropertyFromDeviceFile(objectName, tpmProperty)))
+                {
+                    std::regex re(g_tpmManufacturerFromDeviceFile);
+                    std::smatch match;
+                    if (std::regex_search(tpmProperty, match, re))
+                    {
+                        // manufacturer = match[0].str();
+                        OsConfigLogInfo(TpmLog::Get(), "Tpm::Get: manufacturer: %s", match[0].str().c_str());
+                    }
+                }
+            }
+            else
+            {
+                OsConfigLogError(TpmLog::Get(), "Manufacturer %d", status);
+            }
+
+            data = "\"" + manufacturer + "\"";
+        }
+        else
+        {
+            OsConfigLogError(TpmLog::Get(), "Invalid objectName: %s", objectName);
+            status = EINVAL;
         }
     }
     else
     {
-        if (IsFullLoggingEnabled())
-        {
-            OsConfigLogError(TpmLog::Get(), "Invalid argument, objectName %s not found", objectName);
-        }
+        OsConfigLogError(TpmLog::Get(), "Invalid component name: %s", componentName);
         status = EINVAL;
     }
 
-    if ((2 >= data.length()) && (status == MMI_OK) && ((0 == std::strcmp(objectName, TPM_VERSION)) || (0 == std::strcmp(objectName, TPM_MANUFACTURER))))
+    if ((m_maxPayloadSizeBytes > 0) && (data.length() > m_maxPayloadSizeBytes))
     {
-        this->m_hasCapabilitiesFile = false;
-        std::string tpmProperty;
-        status = Tpm2Utils::GetTpmPropertyFromDeviceFile(objectName, tpmProperty);
-        if ((status == MMI_OK) && (!tpmProperty.empty()))
-        {
-            if (0 == std::strcmp(objectName, TPM_VERSION))
-            {
-                std::regex re(g_tpmVersionFromDeviceFile);
-                std::smatch match;
-                if (std::regex_search(tpmProperty, match, re))
-                {
-                    data = g_quotationCharacter + tpmProperty + g_quotationCharacter;
-                }
-            }
-            else if (0 == std::strcmp(objectName, TPM_MANUFACTURER))
-            {
-                std::regex re(g_tpmManufacturerFromDeviceFile);
-                std::smatch match;
-                if (std::regex_search(tpmProperty, match, re))
-                {
-                    data = g_quotationCharacter + tpmProperty + g_quotationCharacter;
-                }
-            }
-        }
-        else
-        {
-            this->m_hasCapabilitiesFile = true;
-            if (IsFullLoggingEnabled())
-            {
-                OsConfigLogError(TpmLog::Get(), "Tpm property for object %s not found", objectName);
-            }
-        }
+        OsConfigLogError(TpmLog::Get(), "Payload size %d exceeds max payload size %d", static_cast<int>(data.size()), m_maxPayloadSizeBytes);
+        status = E2BIG;
     }
-
-    data.erase(std::find(data.begin(), data.end(), '\0'), data.end());
-
-    if (((data.length() < this->m_maxPayloadSizeBytes) || (this->m_maxPayloadSizeBytes == 0)) && (status == MMI_OK))
+    else
     {
-        *payloadSizeBytes = data.length();
-        *payload = new (std::nothrow) char[*payloadSizeBytes];
-        if (nullptr == *payload)
+        OsConfigLogInfo(TpmLog::Get(), "TPM %s: '%s' %d", objectName, data.c_str(), (int)data.length());
+        *payload = new (std::nothrow) char[data.length()];
+        if (nullptr != *payload)
         {
-            if (nullptr != payloadSizeBytes)
-            {
-                if (IsFullLoggingEnabled())
-                {
-                    OsConfigLogError(TpmLog::Get(), "Insufficient buffer space available to allocate %d bytes", *payloadSizeBytes);
-                }
-            }
-            status = ENOMEM;
+            std::fill(*payload, *payload + data.length(), 0);
+            std::memcpy(*payload, data.c_str(), data.length());
+            *payloadSizeBytes = data.length();
         }
         else
         {
-            std::fill(*payload, *payload + *payloadSizeBytes, 0);
-            std::memcpy(*payload, data.c_str(), *payloadSizeBytes);
+            OsConfigLogError(TpmLog::Get(), "Failed to allocate memory for payload");
+            status = ENOMEM;
         }
     }
 
@@ -201,9 +253,10 @@ void Tpm::HexToText(std::string& s)
     s = result;
 }
 
-void Tpm::GetStatus(std::string& status)
+Tpm::Status Tpm::GetStatus()
 {
     std::string commandOutput = RunCommand(g_getTpmDetected);
+
     if (commandOutput.empty())
     {
         commandOutput = RunCommand(g_getTpmrmDetected);
@@ -211,13 +264,14 @@ void Tpm::GetStatus(std::string& status)
 
     std::regex re(g_tpmDetected);
     std::smatch match;
-    status = std::regex_search(commandOutput, match, re) ? std::to_string(Tpm::Status::TpmDetected) : std::to_string(Tpm::Status::TpmNotDetected);
+    return std::regex_search(commandOutput, match, re) ? Tpm::Status::TpmDetected : Tpm::Status::TpmNotDetected;
 }
 
-void Tpm::GetVersionFromCapabilitiesFile(std::string& version)
+std::string Tpm::GetVersionFromCapabilitiesFile()
 {
-    version = "\"\"";
+    std::string version;
     std::string commandOutput = RunCommand(g_getTpmCapabilities);
+
     if (!commandOutput.empty())
     {
         std::regex re(g_tpmVersionFromCapabilitiesFile);
@@ -227,14 +281,17 @@ void Tpm::GetVersionFromCapabilitiesFile(std::string& version)
             std::string tpmProperties(match.suffix().str());
             std::string tpmVersion(tpmProperties.substr(0, tpmProperties.find('\n')));
             Trim(tpmVersion);
-            version = g_quotationCharacter + tpmVersion + g_quotationCharacter;
+            // TODO: clean up this line
+            version = tpmVersion;
         }
     }
+
+    return version;
 }
 
-void Tpm::GetManufacturerFromCapabilitiesFile(std::string& manufacturer)
+std::string Tpm::GetManufacturerFromCapabilitiesFile()
 {
-    manufacturer = "\"\"";
+    std::string manufacturer;
     std::string commandOutput = RunCommand(g_getTpmCapabilities);
     if (!commandOutput.empty())
     {
@@ -246,7 +303,10 @@ void Tpm::GetManufacturerFromCapabilitiesFile(std::string& manufacturer)
             std::string tpmManufacturer(tpmProperties.substr(0, tpmProperties.find('\n')));
             HexToText(tpmManufacturer);
             Trim(tpmManufacturer);
-            manufacturer = g_quotationCharacter + tpmManufacturer + g_quotationCharacter;
+            // TODO: clean up this line
+            manufacturer = tpmManufacturer;
         }
     }
+
+    return manufacturer;
 }

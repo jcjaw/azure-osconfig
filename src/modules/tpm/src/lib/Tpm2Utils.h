@@ -1,6 +1,9 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+#ifndef TPM_UTILS_H
+#define TPM_UTILS_H
+
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -27,68 +30,46 @@ class Tpm2Utils
 public:
     static int UnsignedInt8ToUnsignedInt64(uint8_t* inputBuf, uint32_t inputBufSize, uint32_t dataOffset, uint32_t dataLength, uint64_t* output)
     {
-        int status = MMI_OK;
+        int status = 0;
         uint32_t i = 0;
         uint64_t temp = 0;
 
         if (nullptr == inputBuf)
         {
-            if (IsFullLoggingEnabled())
-            {
-                OsConfigLogError(TpmLog::Get(), "Invalid argument, inputBuf is null");
-            }
+            OsConfigLogError(TpmLog::Get(), "Invalid argument, inputBuf is null");
             status = EINVAL;
         }
-        if ((nullptr == output) && (status == MMI_OK))
+        else if (nullptr == output)
         {
-            if (IsFullLoggingEnabled())
-            {
-                OsConfigLogError(TpmLog::Get(), "Invalid argument, output is null");
-            }
+            OsConfigLogError(TpmLog::Get(), "Invalid argument, output is null");
             status = EINVAL;
         }
-        if ((dataOffset >= inputBufSize) && (status == MMI_OK))
+        else if (dataOffset >= inputBufSize)
         {
-            if (IsFullLoggingEnabled())
-            {
-                OsConfigLogError(TpmLog::Get(), "Invalid argument, inputBufSize %u must be greater than dataOffset %u", inputBufSize, dataOffset);
-            }
+            OsConfigLogError(TpmLog::Get(), "Invalid argument, inputBufSize %u must be greater than dataOffset %u", inputBufSize, dataOffset);
             status = EINVAL;
         }
-        if ((INT_MAX < inputBufSize) && (status == MMI_OK))
+        else if (INT_MAX < inputBufSize)
         {
-            if (IsFullLoggingEnabled())
-            {
-                OsConfigLogError(TpmLog::Get(), "Invalid argument, inputBufSize %u must be less than or equal to %u", inputBufSize, INT_MAX);
-            }
+            OsConfigLogError(TpmLog::Get(), "Invalid argument, inputBufSize %u must be less than or equal to %u", inputBufSize, INT_MAX);
             status = EINVAL;
         }
-        if ((0 >= dataLength) && (status == MMI_OK))
+        else if (0 >= dataLength)
         {
-            if (IsFullLoggingEnabled())
-            {
-                OsConfigLogError(TpmLog::Get(), "Invalid argument, dataLength %u must greater than 0", dataLength);
-            }
+            OsConfigLogError(TpmLog::Get(), "Invalid argument, dataLength %u must greater than 0", dataLength);
             status = EINVAL;
         }
-        if ((dataLength > (inputBufSize - dataOffset)) && (status == MMI_OK))
+        else if (dataLength > (inputBufSize - dataOffset))
         {
-            if (IsFullLoggingEnabled())
-            {   
-                OsConfigLogError(TpmLog::Get(), "Invalid argument, dataLength %u must be less than or equal to %i", dataLength, inputBufSize - dataOffset);
-            }
+            OsConfigLogError(TpmLog::Get(), "Invalid argument, dataLength %u must be less than or equal to %i", dataLength, inputBufSize - dataOffset);
             status = EINVAL;
         }
-        if ((sizeof(uint64_t) < dataLength) && (status == MMI_OK))
+        else if (sizeof(uint64_t) < dataLength)
         {
-            if (IsFullLoggingEnabled())
-            {
-                OsConfigLogError(TpmLog::Get(), "Invalid argument, input buffer dataLength remaining from dataOffset must be less than %zu", sizeof(uint64_t));
-            }
+            OsConfigLogError(TpmLog::Get(), "Invalid argument, input buffer dataLength remaining from dataOffset must be less than %zu", sizeof(uint64_t));
             status = EINVAL;
         }
-        
-        if (status == MMI_OK)
+        else
         {
             *output = 0;
             for (i = 0; i < dataLength; i++)
@@ -102,10 +83,10 @@ public:
         return status;
     }
 
-    static int BufferToString(unsigned char* buf, std::string& str)
+    static int BufferToString(unsigned char* buffer, std::string& str)
     {
         int status = MMI_OK;
-        if (nullptr == buf)
+        if (nullptr == buffer)
         {
             if (IsFullLoggingEnabled())
             {
@@ -116,7 +97,7 @@ public:
         else
         {
             std::ostringstream os;
-            os << buf;
+            os << buffer;
             if (os.good())
             {
                 str = os.str();
@@ -131,32 +112,19 @@ public:
             }
         }
 
-        return status; 
+        return status;
     }
 
-    static int GetTpmPropertyFromBuffer(uint8_t* buf, ssize_t bufSize, const char* objectName, std::string& tpmProperty)
+    static std::string GetTpmPropertyFromBuffer(uint8_t* buffer, ssize_t bufSize, const std ::string objectName)
     {
-        int status = MMI_OK;
+        std::string tpmProperty;
         uint64_t tpmPropertyKey = 0;
 
-        if (nullptr == buf)
+        if (nullptr == buffer)
         {
-            if (IsFullLoggingEnabled())
-            {
-                OsConfigLogError(TpmLog::Get(), "Invalid argument, buf is null");
-            }
-            status = EINVAL;
+            OsConfigLogError(TpmLog::Get(), "Invalid argument, null buffer");
         }
-        if ((nullptr == objectName) && (status == MMI_OK))
-        {
-            if (IsFullLoggingEnabled())
-            {
-                OsConfigLogError(TpmLog::Get(), "Invalid argument, objectName is null");
-            }
-            status = EINVAL;
-        }
-
-        if (status == MMI_OK)
+        else
         {
             for(int n = 0x13; n < (bufSize - 8); n += 8)
             {
@@ -190,96 +158,58 @@ public:
                     default:
                         break;
                 }
-
-                if ((!tpmProperty.empty()) || (status != MMI_OK))
-                {
-                    break;
-                }
             }
         }
 
-        return status;
+        return tpmProperty;
     }
 
     static int GetTpmPropertyFromDeviceFile(const char* objectName, std::string& tpmProperty)
     {
         int status = MMI_OK;
-        int tpm = TPM_COMMUNICATION_ERROR;
+        int tpm = -1;
+        uint8_t* request = g_getgetTpmProperties;
         ssize_t requestSize = sizeof(g_getTpmProperties);
+        uint8_t* response = nullptr
         ssize_t responseSize = TPM_RESPONSE_MAX_SIZE;
-        uint8_t* response = (uint8_t*)malloc(TPM_RESPONSE_MAX_SIZE);
 
-        ScopeGuard sg{[&]()
+        if (nullptr == (response = (uint8_t*)malloc(responseSize)))
         {
-            if (nullptr != response)
-            {
-                memset(response, 0, TPM_RESPONSE_MAX_SIZE);
-                free(response);
-                response = nullptr;
-            }
-        }};
-
-        if (nullptr == response)
-        {
-            if (IsFullLoggingEnabled())
-            {
-                OsConfigLogError(TpmLog::Get(), "Insufficient buffer space available to allocate %d bytes", TPM_RESPONSE_MAX_SIZE);
-            }
+            OsConfigLogError(TpmLog::Get(), "Insufficient buffer space available to allocate %d bytes", TPM_RESPONSE_MAX_SIZE);
             status = ENOMEM;
         }
-
-        if (status == MMI_OK)
+        else
         {
-            memset(response, 0, TPM_RESPONSE_MAX_SIZE);
+            memset(response, 0xFF, responseSize);
 
-            tpm = open(TPM_PATH, O_RDWR);
-            if (TPM_COMMUNICATION_ERROR == tpm)
+            if (-1 == (tpm = open(TPM_PATH, O_RDWR)))
             {
-                if (IsFullLoggingEnabled())
-                {
-                    OsConfigLogError(TpmLog::Get(), "Error opening the device");
-                }
+                OsConfigLogError(TpmLog::Get(), "Failed to open tpm: %s", TPM_PATH);
+                status = ENOENT;
+            }
+            else if ((-1 == (responseSize = write(tpm, request, requestSize))) || (requestSize != responseSize))
+            {
+                OsConfigLogError(TpmLog::Get(), "Error reading response from the device");
                 status = errno;
             }
-        }
-
-        if (status == MMI_OK)
-        {
-            responseSize = write(tpm, g_getTpmProperties, requestSize);
-            if ((responseSize == TPM_COMMUNICATION_ERROR) || (requestSize != responseSize))
+            else if (-1 == (responseSize = read(tpm, response, TPM_RESPONSE_MAX_SIZE)))
             {
-                if (IsFullLoggingEnabled())
-                {
-                    OsConfigLogError(TpmLog::Get(), "Error sending request to the device");
-                }
+                OsConfigLogError(TpmLog::Get(), "Error reading response from the device");
                 status = errno;
             }
-        }
-
-        if (status == MMI_OK)
-        {
-            responseSize = read(tpm, response, TPM_RESPONSE_MAX_SIZE);
-            if (responseSize == TPM_COMMUNICATION_ERROR)
+            else
             {
-                if (IsFullLoggingEnabled())
-                {
-                    OsConfigLogError(TpmLog::Get(), "Error reading response from the device");
-                }
-                status = errno;
+                status = GetTpmPropertyFromBuffer(buf, responseSize, objectName, tpmProperty)
             }
-        }
 
-        if ((TPM_COMMUNICATION_ERROR != tpm) && (status == MMI_OK))
-        {
-            close(tpm);
-            tpm = TPM_COMMUNICATION_ERROR;
-        }
-
-        if (status == MMI_OK)
-        {
-            status = GetTpmPropertyFromBuffer(response, responseSize, objectName, tpmProperty);
+            if (tpm != -1)
+            {
+                close(tpm);
+            }
         }
 
         return status;
     }
 };
+
+#endif // TPM_UTILS_H
