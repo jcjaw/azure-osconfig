@@ -539,8 +539,14 @@ IOTHUB_CLIENT_RESULT ReportPropertyToIotHub(const char* componentName, const cha
         return IOTHUB_CLIENT_ERROR;
     }
 
-    mpiResult = CallMpiGet(componentName, propertyName, &valuePayload, &valueLength);
+    mpiResult =  CallMpiGet(componentName, propertyName, &valuePayload, &valueLength);
+    if ((MPI_OK != mpiResult) && RefreshMpiClientSession())
+    {
+        CallMpiFree(valuePayload);
 
+        mpiResult = CallMpiGet(componentName, propertyName, &valuePayload, &valueLength);
+    }
+        
     if ((MPI_OK == mpiResult) && (valueLength > 0) && (NULL != valuePayload))
     {
         decoratedLength = strlen(componentName) + strlen(propertyName) + valueLength + EXTRA_PROP_PAYLOAD_ESTIMATE;
@@ -648,6 +654,10 @@ IOTHUB_CLIENT_RESULT UpdatePropertyFromIotHub(const char* componentName, const c
         }
 
         mpiResult = CallMpiSet(componentName, propertyName, serializedValue, valueLength);
+        if ((MPI_OK != mpiResult) && RefreshMpiClientSession())
+        {
+            mpiResult = CallMpiSet(componentName, propertyName, serializedValue, valueLength);
+        }
 
         if (MPI_OK == mpiResult)
         {

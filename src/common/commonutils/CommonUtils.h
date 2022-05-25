@@ -34,6 +34,9 @@ char* LoadStringFromFile(const char* fileName, bool stopAtEol, void* log);
 
 bool SavePayloadToFile(const char* fileName, const char* payload, const int payloadSizeBytes, void* log);
 
+void SetCommandLogging(bool commandLogging);
+bool IsCommandLoggingEnabled(void);
+
 typedef int(*CommandCallback)(void* context);
 
 // If called from the main process thread the timeoutSeconds and callback arguments are ignored
@@ -87,6 +90,10 @@ int ReadHttpStatusFromSocket(int socketHandle, void* log);
 int ReadHttpContentLengthFromSocket(int socketHandle, void* log);
 
 int SleepMilliseconds(long milliseconds);
+
+bool IsDaemonActive(const char* name, void* log);
+bool EnableAndStartDaemon(const char* name, void* log);
+void StopAndDisableDaemon(const char* name, void* log);
 
 #ifdef __cplusplus
 }

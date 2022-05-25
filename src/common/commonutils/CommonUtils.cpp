@@ -1,23 +1,14 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-#include <algorithm>
-#include <cstdio>
-#include <cstring>
-#include <string>
-#include <regex>
-#include <Logging.h>
-#include <CommonUtils.h>
-#include <rapidjson/document.h>
-#include <rapidjson/schema.h>
-#include <rapidjson/stringbuffer.h>
+#include "Internal.h"
 
 #define OSCONFIG_NAME_PREFIX "Azure OSConfig "
 #define OSCONFIG_MODEL_VERSION_DELIMITER ";"
 #define OSCONFIG_SEMANTIC_VERSION_DELIMITER "."
 
 // "Azure OSConfig <model version>;<major>.<minor>.<patch>.<yyyymmdd><build>"
-#define OSCONFIG_PRODUCT_INFO_TEMPLATE "^((Azure OSConfig )[1-9];(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.([0-9]{8})).*$"
+#define OSCONFIG_PRODUCT_INFO_TEMPLATE "^((Azure OSConfig )([0-9]+);(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.([0-9]{8})).*$"
 
 // OSConfig model version 5 published on September 27, 2021
 #define OSCONFIG_REFERENCE_MODEL_VERSION 5

@@ -337,48 +337,41 @@ static void ForkDaemon()
     }
 }
 
-static bool StartPlatform(void)
-{
-   const char* enablePlatform = "sudo systemctl enable osconfig-platform";
-   const char* startPlatform = "sudo systemctl start osconfig-platform";
-
-   return ((0 == ExecuteCommand(NULL, enablePlatform, false, false, 0, 0, NULL, NULL, GetLog())) &&
-       (0 == ExecuteCommand(NULL, startPlatform, false, false, 0, 0, NULL, NULL, GetLog())));
-}
-
-static bool StopPlatform(void)
-{
-   const char* stopPlatform = "sudo systemctl stop osconfig-platform";
-
-   return (0 == ExecuteCommand(NULL, stopPlatform, false, false, 0, 0, NULL, NULL, GetLog()));
-}
-
-static bool InitializeAgent(void)
+bool RefreshMpiClientSession(void)
 {
     bool status = true;
 
-    g_lastTime = (unsigned int)time(NULL);
-
-    if (NULL == (g_mpiHandle = CallMpiOpen(g_productName, g_maxPayloadSizeBytes)))
+    if (g_mpiHandle && IsDaemonActive(OSCONFIG_PLATFORM, GetLog()))
     {
-        OsConfigLogInfo(GetLog(), "Start the platform");
-        if (StartPlatform())
+        // Platform is already running
+        return status;
+    }
+    
+    if (true == (status = EnableAndStartDaemon(OSCONFIG_PLATFORM, GetLog())))
+    {
+        sleep(1);
+        
+        if (NULL == (g_mpiHandle = CallMpiOpen(g_productName, g_maxPayloadSizeBytes)))
         {
-            sleep(1);
-            if (NULL == (g_mpiHandle = CallMpiOpen(g_productName, g_maxPayloadSizeBytes)))
-            {
-                LogErrorWithTelemetry(GetLog(), "MpiOpen failed");
-                g_exitState = PlatformInitializationFailure;
-                status = false;
-            }
-        }
-        else
-        {
-            LogErrorWithTelemetry(GetLog(), "Platform could not be started");
+            LogErrorWithTelemetry(GetLog(), "MpiOpen failed");
             g_exitState = PlatformInitializationFailure;
             status = false;
         }
     }
+    else
+    {
+        LogErrorWithTelemetry(GetLog(), "Platform could not be started");
+        g_exitState = PlatformInitializationFailure;
+    }
+
+    return status;
+}
+
+static bool InitializeAgent(void)
+{
+    bool status = RefreshMpiClientSession();
+
+    g_lastTime = (unsigned int)time(NULL);
 
     if (status && g_iotHubConnectionString)
     {
@@ -429,6 +422,13 @@ static void SaveReportedConfigurationToFile()
     if (g_localManagement)
     {
         mpiResult = CallMpiGetReported((MPI_JSON_STRING*)&payload, &payloadSizeBytes);
+        if ((MPI_OK != mpiResult) && RefreshMpiClientSession())
+        {
+            CallMpiFree(payload);
+
+            mpiResult = CallMpiGetReported((MPI_JSON_STRING*)&payload, &payloadSizeBytes);
+        }
+        
         if ((MPI_OK == mpiResult) && (NULL != payload) && (0 < payloadSizeBytes))
         {
             if (g_reportedHash != (payloadHash = HashString(payload)))
@@ -440,6 +440,7 @@ static void SaveReportedConfigurationToFile()
                 }
             }
         }
+        
         CallMpiFree(payload);
     }
 }
@@ -466,6 +467,7 @@ static void LoadDesiredConfigurationFromFile()
     size_t payloadHash = 0;
     int payloadSizeBytes = 0;
     char* payload = NULL; 
+    int mpiResult = MPI_OK;
 
     RestrictFileAccessToCurrentAccountOnly(DC_FILE);
 
@@ -475,7 +477,13 @@ static void LoadDesiredConfigurationFromFile()
         // Do not call MpiSetDesired unless this desired configuration is different from previous
         if (g_desiredHash != (payloadHash = HashString(payload)))
         {
-            if (MPI_OK == CallMpiSetDesired((MPI_JSON_STRING)payload, payloadSizeBytes))
+            mpiResult = CallMpiSetDesired((MPI_JSON_STRING)payload, payloadSizeBytes);
+            if ((MPI_OK != mpiResult) && RefreshMpiClientSession())
+            {
+                mpiResult = CallMpiSetDesired((MPI_JSON_STRING)payload, payloadSizeBytes);
+            }
+            
+            if (MPI_OK == mpiResult)
             {
                 g_desiredHash = payloadHash;
             }
@@ -572,6 +580,7 @@ int main(int argc, char *argv[])
     jsonConfiguration = LoadStringFromFile(CONFIG_FILE, false, GetLog());
     if (NULL != jsonConfiguration)
     {
+        SetCommandLogging(IsCommandLoggingEnabledInJsonConfig(jsonConfiguration));
         SetFullLogging(IsFullLoggingEnabledInJsonConfig(jsonConfiguration));
         FREE_MEMORY(jsonConfiguration);
     }
@@ -593,9 +602,9 @@ int main(int argc, char *argv[])
     OsConfigLogInfo(GetLog(), "OSConfig PnP Agent starting (PID: %d, PPID: %d)", pid = getpid(), getppid());
     OsConfigLogInfo(GetLog(), "OSConfig version: %s", OSCONFIG_VERSION);
 
-    if (IsFullLoggingEnabled())
+    if (IsCommandLoggingEnabled() || IsFullLoggingEnabled())
     {
-        OsConfigLogInfo(GetLog(), "WARNING: full logging is enabled. To disable full logging edit %s and restart OSConfig", CONFIG_FILE);
+        OsConfigLogInfo(GetLog(), "WARNING: verbose logging (command and/or full) is enabled. To disable verbose logging edit %s and restart OSConfig", CONFIG_FILE);
     }
 
     TraceLoggingWrite(g_providerHandle, "AgentStart", TraceLoggingInt32((int32_t)pid, "Pid"), TraceLoggingString(OSCONFIG_VERSION, "Version"));
@@ -777,6 +786,9 @@ done:
     FREE_MEMORY(g_iotHubConnectionString);
 
     CloseAgent();
+    
+    StopAndDisableDaemon(OSCONFIG_PLATFORM, GetLog());
+
     CloseTraceLogging();
     CloseLog(&g_agentLog);
 
@@ -796,9 +808,6 @@ done:
     {
         free((void *)g_proxyOptions.password);
     }
-
-    // Stop the platform when agent terminates
-    StopPlatform();
 
     return 0;
 }
