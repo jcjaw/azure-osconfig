@@ -8,9 +8,8 @@
 #include <rapidjson/writer.h>
 #include <rapidjson/prettywriter.h>
 
-#include <Command.h>
 #include <CommandRunner.h>
-#include <Mmi.h>
+#include <CommandRunnerLog.h>
 
 const std::string CommandRunner::m_componentName = "CommandRunner";
 const unsigned int CommandRunner::m_maxCacheSize = 10;

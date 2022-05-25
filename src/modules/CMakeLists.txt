@@ -1,6 +1,8 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
+set(MODULES_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set(MODULES_TEMPLATE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates)
 set(MODULES_INC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/inc)
 set(MODULES_INSTALL_DIR "/usr/lib/osconfig" CACHE FILEPATH "Directory used for installing modules")
 

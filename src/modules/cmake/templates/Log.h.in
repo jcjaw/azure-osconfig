@@ -1,0 +1,31 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
+#pragma once
+
+#include <cstdio>
+#include <Logging.h>
+
+#define @MODULE_NAME_UPPER@_LOGFILE "/var/log/osconfig_@MODULE_NAME_LOWER@.log"
+#define @MODULE_NAME_UPPER@_ROLLEDLOGFILE "/var/log/osconfig_@MODULE_NAME_LOWER@.bak"
+
+class @MODULE_NAME@Log
+{
+public:
+    static OSCONFIG_LOG_HANDLE Get()
+    {
+        return m_log;
+    }
+
+    static void OpenLog()
+    {
+        m_log = ::OpenLog(@MODULE_NAME_UPPER@_LOGFILE, @MODULE_NAME_UPPER@_ROLLEDLOGFILE);
+    }
+
+    static void CloseLog()
+    {
+        ::CloseLog(&m_log);
+    }
+
+    static OSCONFIG_LOG_HANDLE m_log;
+};

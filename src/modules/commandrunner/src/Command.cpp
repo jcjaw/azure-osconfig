@@ -6,6 +6,7 @@
 #include <unistd.h>
 
 #include <Command.h>
+#include <CommandRunnerLog.h>
 
 static const char alphanum[] = "0123456789"\
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ"\
