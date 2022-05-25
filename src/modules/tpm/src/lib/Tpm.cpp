@@ -164,7 +164,6 @@ int Tpm::Get(const char* componentName, const char* objectName, MMI_JSON_STRING*
         OsConfigLogError(TpmLog::Get(), "Invalid component name: %s", componentName);
         status = EINVAL;
     }
-
     if ((m_maxPayloadSizeBytes > 0) && (data.length() > m_maxPayloadSizeBytes))
     {
         OsConfigLogError(TpmLog::Get(), "Payload size %d exceeds max payload size %d", static_cast<int>(data.size()), m_maxPayloadSizeBytes);
