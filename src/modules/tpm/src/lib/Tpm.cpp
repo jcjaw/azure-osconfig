@@ -106,50 +106,52 @@ int Tpm::Get(const char* componentName, const char* objectName, MMI_JSON_STRING*
         else if ((0 == std::strcmp(TPM_VERSION, objectName)) && (this->m_hasCapabilitiesFile))
         {
             std::string tpmProperty;
+            // std::string version;
             std::string version = GetVersionFromCapabilitiesFile();
 
-            if (version.empty())
-            {
-                if (0 == Tpm2Utils::GetTpmPropertyFromDeviceFile(objectName, tpmProperty))
-                {
-                    std::regex re(g_tpmVersionFromDeviceFile);
-                    std::smatch match;
-                    if (std::regex_search(tpmProperty, match, re))
-                    {
-                        // version = match[0].str();
-                        OsConfigLogInfo(TpmLog::Get(), "Tpm::Get: version: %s", tpmProperty.c_str());
-                    }
-                }
-            }
-            else
-            {
-                OsConfigLogError(TpmLog::Get(), "Version %d", status);
-            }
+            // if (version.empty())
+            // {
+            //     if (0 == Tpm2Utils::GetTpmPropertyFromDeviceFile(objectName, tpmProperty))
+            //     {
+            //         std::regex re(g_tpmVersionFromDeviceFile);
+            //         std::smatch match;
+            //         if (std::regex_search(tpmProperty, match, re))
+            //         {
+            //             version = match[0].str();
+            //             OsConfigLogInfo(TpmLog::Get(), "Tpm::Get: version: %s", tpmProperty.c_str());
+            //         }
+            //     }
+            // }
+            // else
+            // {
+            //     OsConfigLogError(TpmLog::Get(), "Version %d", status);
+            // }
 
             data = "\"" + version + "\"";
         }
         else if ((0 == std::strcmp(TPM_MANUFACTURER, objectName)) && (this->m_hasCapabilitiesFile))
         {
             std::string tpmProperty;
+            // std::string manufacturer;
             std::string manufacturer = GetManufacturerFromCapabilitiesFile();
 
-            if (manufacturer.empty())
-            {
-                if (0 == Tpm2Utils::GetTpmPropertyFromDeviceFile(objectName, tpmProperty))
-                {
-                    std::regex re(g_tpmManufacturerFromDeviceFile);
-                    std::smatch match;
-                    if (std::regex_search(tpmProperty, match, re))
-                    {
-                        // manufacturer = match[0].str();
-                        OsConfigLogInfo(TpmLog::Get(), "Tpm::Get: manufacturer: %s", match[0].str().c_str());
-                    }
-                }
-            }
-            else
-            {
-                OsConfigLogError(TpmLog::Get(), "Manufacturer %d", status);
-            }
+            // if (manufacturer.empty())
+            // {
+            //     if (0 == Tpm2Utils::GetTpmPropertyFromDeviceFile(objectName, tpmProperty))
+            //     {
+            //         std::regex re(g_tpmManufacturerFromDeviceFile);
+            //         std::smatch match;
+            //         if (std::regex_search(tpmProperty, match, re))
+            //         {
+            //             manufacturer = match[0].str();
+            //             OsConfigLogInfo(TpmLog::Get(), "Tpm::Get: manufacturer: %s", match[0].str().c_str());
+            //         }
+            //     }
+            // }
+            // else
+            // {
+            //     OsConfigLogError(TpmLog::Get(), "Manufacturer %d", status);
+            // }
 
             data = "\"" + manufacturer + "\"";
         }
@@ -227,6 +229,7 @@ unsigned char Tpm::Decode(char c)
 
 void Tpm::HexToText(std::string& s)
 {
+    OsConfigLogInfo(TpmLog::Get(), "HexToText: %s", s.c_str());
     std::string result;
     if ((s.size() % 2) == 0)
     {
@@ -302,7 +305,7 @@ std::string Tpm::GetManufacturerFromCapabilitiesFile()
             std::string tpmManufacturer(tpmProperties.substr(0, tpmProperties.find('\n')));
             HexToText(tpmManufacturer);
             Trim(tpmManufacturer);
-            // TODO: clean up this line
+            // TODO: cleanHexToText up this line
             manufacturer = tpmManufacturer;
         }
     }
