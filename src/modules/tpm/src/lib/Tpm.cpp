@@ -110,7 +110,7 @@ int Tpm::Get(const char* componentName, const char* objectName, MMI_JSON_STRING*
 
             if (version.empty())
             {
-                if (MMI_OK == (status = Tpm2Utils::GetTpmPropertyFromDeviceFile(objectName, tpmProperty)))
+                if (0 == Tpm2Utils::GetTpmPropertyFromDeviceFile(objectName, tpmProperty))
                 {
                     std::regex re(g_tpmVersionFromDeviceFile);
                     std::smatch match;
@@ -135,7 +135,7 @@ int Tpm::Get(const char* componentName, const char* objectName, MMI_JSON_STRING*
 
             if (manufacturer.empty())
             {
-                if (MMI_OK == (status = Tpm2Utils::GetTpmPropertyFromDeviceFile(objectName, tpmProperty)))
+                if (0 == Tpm2Utils::GetTpmPropertyFromDeviceFile(objectName, tpmProperty))
                 {
                     std::regex re(g_tpmManufacturerFromDeviceFile);
                     std::smatch match;
