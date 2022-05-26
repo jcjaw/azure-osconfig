@@ -84,10 +84,10 @@ MMI_HANDLE MmiOpen(
 
     if (nullptr != clientName)
     {
-        Tpm* commandRunner = new (std::nothrow) Tpm(maxPayloadSizeBytes);
-        if (nullptr != commandRunner)
+        Tpm* tpm = new (std::nothrow) Tpm(maxPayloadSizeBytes);
+        if (nullptr != tpm)
         {
-            handle = reinterpret_cast<MMI_HANDLE>(commandRunner);
+            handle = reinterpret_cast<MMI_HANDLE>(tpm);
         }
         else
         {
@@ -106,10 +106,10 @@ MMI_HANDLE MmiOpen(
 
 void MmiClose(MMI_HANDLE clientSession)
 {
-    Tpm* commandRunner = reinterpret_cast<Tpm*>(clientSession);
-    if (nullptr != commandRunner)
+    Tpm* tpm = reinterpret_cast<Tpm*>(clientSession);
+    if (nullptr != tpm)
     {
-        delete commandRunner;
+        delete tpm;
     }
 }
 
