@@ -25,7 +25,7 @@ function(generate_module target name)
 
     set(MODULE_LOGGING ${MODULE_NAME_LOWER}_logging)
 
-    add_library(${MODULE_LOGGING} STATIC ${CMAKE_CURRENT_BINARY_DIR}/lib/Log.cpp)
+    add_library(${MODULE_LOGGING} STATIC ${CMAKE_CURRENT_BINARY_DIR}/lib/${MODULE_NAME}Log.cpp)
     target_link_libraries(${MODULE_LOGGING} logging)
     target_include_directories(${MODULE_LOGGING} PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/inc)
 
