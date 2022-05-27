@@ -6,7 +6,7 @@
 #include <cstring>
 
 #include <@MODULE_NAME@.h>
-#include <Log.h>
+#include <@MODULE_NAME@Log.h>
 #include <ScopeGuard.h>
 #include <Mmi.h>
 
@@ -56,7 +56,20 @@ int MmiGetInfo(
     }};
 
     // Get the static information from the @MODULE_NAME@ module
-    status = @MODULE_NAME@::GetInfo(clientName, payload, payloadSizeBytes);
+    try
+    {
+        status = @MODULE_NAME@::GetInfo(clientName, payload, payloadSizeBytes);
+    }
+    catch (const std::exception& e)
+    {
+        OsConfigLogError(@MODULE_NAME@Log::Get(), "MmiGetInfo(%s, %.*s, %d) failed with exception: %s", clientName, *payloadSizeBytes, *payload, *payloadSizeBytes, e.what());
+        status = -1;
+    }
+    catch (...)
+    {
+        OsConfigLogError(@MODULE_NAME@Log::Get(), "MmiGetInfo(%s, %.*s, %d) failed with unknown exception", clientName, *payloadSizeBytes, *payload, *payloadSizeBytes);
+        status = -1;
+    }
 
     return status;
 }
@@ -90,7 +103,8 @@ MMI_HANDLE MmiOpen(
         else
         {
             OsConfigLogError(@MODULE_NAME@Log::Get(), "MmiOpen failed to allocate memory");
-            status = ENOMEM;        }
+            status = ENOMEM;
+        }
     }
     else
     {
@@ -150,7 +164,21 @@ int MmiSet(
     else
     {
         session = reinterpret_cast<@MODULE_NAME@*>(clientSession);
-        status = session->Set(componentName, objectName, payload, payloadSizeBytes);
+
+        try
+        {
+            status = session->Set(componentName, objectName, payload, payloadSizeBytes);
+        }
+        catch (const std::exception& e)
+        {
+            OsConfigLogError(@MODULE_NAME@Log::Get(), "MmiSet(%p, %s, %s, %.*s, %d) failed with exception: %s", clientSession, componentName, objectName, payloadSizeBytes, payload, payloadSizeBytes, e.what());
+            status = -1;
+        }
+        catch (...)
+        {
+            OsConfigLogError(@MODULE_NAME@Log::Get(), "MmiSet(%p, %s, %s, %.*s, %d) failed with unknown exception", clientSession, componentName, objectName, payloadSizeBytes, payload, payloadSizeBytes);
+            status = -1;
+        }
     }
 
     return status;
@@ -189,7 +217,21 @@ int MmiGet(
     else
     {
         session = reinterpret_cast<@MODULE_NAME@*>(clientSession);
-        status = session->Get(componentName, objectName, payload, payloadSizeBytes);
+
+        try
+        {
+            status = session->Get(componentName, objectName, payload, payloadSizeBytes);
+        }
+        catch (const std::exception& e)
+        {
+            OsConfigLogError(@MODULE_NAME@Log::Get(), "MmiGet(%p, %s, %s, %.*s, %d) failed with exception: %s", clientSession, componentName, objectName, *payloadSizeBytes, *payload, *payloadSizeBytes, e.what());
+            status = -1;
+        }
+        catch (...)
+        {
+            OsConfigLogError(@MODULE_NAME@Log::Get(), "MmiGet(%p, %s, %s, %.*s, %d) failed with unknown exception", clientSession, componentName, objectName, *payloadSizeBytes, *payload, *payloadSizeBytes);
+            status = -1;
+        }
     }
 
     return status;
