@@ -12,7 +12,7 @@ namespace Tests
 
     TEST(MimParserTests, LoadMim)
     {
-        pMimObjects mimObjects = MimParser::ParseMim("./mim/commandrunner.json");
+        pMimObjects mimObjects = MimParser::ParseMim("./mim/sample.json");
 
         // Should have one component and 2 MimObjects
         ASSERT_EQ(mimObjects->size(), 1);

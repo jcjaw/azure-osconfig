@@ -54,30 +54,69 @@ pMimObjects MimParser::ParseMim(std::string path)
                         mimField = {
                             json_object_get_string(jsonField, "name"),
                             json_object_get_string(jsonField, "schema"),
+                            "", // subType1
+                            "", // subType2
                             std::make_shared<std::vector<std::string>>()};
                     }
                     else if (json_object_has_value_of_type(jsonField, "schema", JSONObject))
                     {
-                        // TODO: Turn into recursive function to support embedded objects
+                        // TODO: Turn into recursive function to support embedded objects?
 
                         JSON_Object *jsonSchema = json_object_get_object(jsonField, "schema");
 
                         // TODO: Add type check -- need map + array support
-                        // TODO: It doesn't necessarily have a valueSchema, but if it does, it has supported values! But there are not necessarily supported values.
-                        mimField = {
-                            json_object_get_string(jsonField, "name"),
-                            json_object_get_string(jsonSchema, "valueSchema"),
-                            std::make_shared<std::vector<std::string>>()};
-
-                        // Add supported values
-                        if (json_object_has_value_of_type(jsonSchema, "enumValues", JSONArray))
+                        // Map = mapKey + schema, mapValue + schema
+                        // Only for enum type Values
+                        if (0 == strcmp(json_object_get_string(jsonSchema, "type"), "enum"))
                         {
-                            JSON_Array *supportedValues = json_object_get_array(jsonSchema, "enumValues");
-                            for (size_t a = 0; a < json_array_get_count(supportedValues); a++)
+                            mimField = {
+                                json_object_get_string(jsonField, "name"),
+                                json_object_get_string(jsonSchema, "valueSchema"),
+                                "", // subType1
+                                "", // subType2
+                                std::make_shared<std::vector<std::string>>()};
+
+                            // Add supported values
+                            if (json_object_has_value_of_type(jsonSchema, "enumValues", JSONArray))
                             {
-                                JSON_Object *jsonField = json_array_get_object(supportedValues, a);
-                                mimField.allowedValues->push_back(std::to_string(json_object_get_number(jsonField, "enumValue")));
+                                JSON_Array *supportedValues = json_object_get_array(jsonSchema, "enumValues");
+                                for (size_t a = 0; a < json_array_get_count(supportedValues); a++)
+                                {
+                                    JSON_Object *jsonField = json_array_get_object(supportedValues, a);
+                                    mimField.allowedValues->push_back(std::to_string(json_object_get_number(jsonField, "enumValue")));
+                                }
                             }
+                        }
+                        // else if (0 == strcmp(json_object_get_string(jsonSchema, "type"), "array"))
+                        // {
+                        //     // TODO: Add support for array of objects
+                        //     mimField = {
+                        //         json_object_get_string(jsonField, "name"),
+                        //         "array",
+                        //         json_object_get_string(jsonField, "elementSchema"), // subType1
+                        //         "", // subType2
+                        //         std::make_shared<std::vector<std::string>>()};
+                        // }
+                        else if (0 == strcmp(json_object_get_string(jsonSchema, "type"), "map"))
+                        {
+                            const char* keySchema = json_object_dotget_string(jsonSchema, "mapKey.schema");
+                            const char* valueSchema = json_object_dotget_string(jsonSchema, "mapValue.schema");
+
+                            if (nullptr == keySchema || nullptr == valueSchema)
+                            {
+                                TestLogError("Missing key or value schema for map field '%s'", json_object_get_string(jsonSchema, "name"));
+                            }
+
+                            mimField = {
+                                json_object_get_string(jsonField, "name"),
+                                "map",
+                                keySchema, // subType1
+                                valueSchema, // subType2
+                                std::make_shared<std::vector<std::string>>()};
+                        }
+                        else
+                        {
+                            TestLogError("Invalid type '%s'", json_object_get_string(jsonSchema, "type"));
                         }
                     }
                     (*mim.m_fields)[mimField.name] = mimField;
