@@ -28,6 +28,9 @@ typedef std::shared_ptr<MimObjects> pMimObjects;
 
 class MimParser
 {
+private:
+    static void ParseMimField(JSON_Object* jsonField, MimObject& mimObject);
+
 public:
     static pMimObjects ParseMim(std::string path);
 };
