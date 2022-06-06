@@ -1,0 +1,12 @@
+[package]
+name = "platform"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+hyper = "^0.14"
+hyper-router = "^0.5"
+hyperlocal = "0.8"
+tokio = { version = "1.0", features = ["io-std", "io-util", "macros", "rt-multi-thread"] }
