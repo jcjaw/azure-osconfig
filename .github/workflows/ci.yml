@@ -97,7 +97,7 @@ jobs:
 
       - name: Run gcovr
         working-directory: ./build
-        run: gcovr -r ../src . -e ../src/agents/pnp/ --xml coverage.xml
+        run: gcovr -r ../src . -e ../src/agents/pnp/ ../src/modules/so/ --xml coverage.xml
 
       - name: Generate markdown report
         uses: irongut/CodeCoverageSummary@v1.2.0
