@@ -8,3 +8,9 @@ jobs:
     runs-on: [self-hosted, 1ES.Pool=azure-osconfig-pool]
     steps:
       - run: echo "Hello, this is a self-hosted runner pool test!"
+
+  github-runner:
+    name: "'Normal' GitHub Runner"
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Hello, this is a github runner!"
