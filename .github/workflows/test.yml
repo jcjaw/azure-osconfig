@@ -1,0 +1,10 @@
+name: Test
+
+on: [push]
+
+jobs:
+  self-hosted-runner:
+    name: Test Self-hosted Runner
+    runs-on: [self-hosted, 1ES.Pool=azure-osconfig-pool]
+    steps:
+      - run: echo "Hello, this is a self-hosted runner pool test!"
