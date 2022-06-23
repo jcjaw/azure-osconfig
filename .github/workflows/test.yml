@@ -5,13 +5,13 @@ on: [push]
 jobs:
   self-hosted-Linuyx:
     name: Self-hosted linux runner
-    runs-on: [self-hosted, 1ES.Pool=azure-osconfig-pool, ubuntu-latest]
+    runs-on: [self-hosted, 1ES.Pool=azure-osconfig-pool, linux]
     steps:
       - run: echo "Hello, this is a self-hosted runner pool test!"
 
   self-hosted-windows:
     name: Self-hosted windows runner
-    runs-on: [self-hosted, 1ES.Pool=azure-osconfig-pool, windows-2022]
+    runs-on: [self-hosted, 1ES.Pool=azure-osconfig-pool, windows]
     steps:
       - run: echo "Hello, this is a self-hosted runner pool test!"
 
