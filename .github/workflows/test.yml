@@ -1,0 +1,19 @@
+name: Test
+
+on: [push]
+
+jobs:
+  self-hosted-linux:
+    runs-on: [self-hosted, 1ES.Pool=azure-osconfig-linux-pool]
+    steps:
+      - run: echo "Hello from self-hosted Linux runner"
+
+  self-hosted-windows:
+    runs-on: [self-hosted, 1ES.Pool=azure-osconfig-windows-pool]
+    steps:
+      - run: echo "Hello from self-hosted Windows runner"
+
+  github-runner:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Hello from GitHub hosted runner"
