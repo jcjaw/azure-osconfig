@@ -131,11 +131,11 @@ jobs:
           Import-PfxCertificate -FilePath ${{ github.workspace }}\certESRP.pfx
 
       - name: Sign packages
+        working-directory: ${{ github.workspace }}/esrpclient
         run: |
-          mkdir esrpclient\Output
-          .\devops\scripts\create_esrp_job.ps1 (ls .\esrpclient\Input\ | select -expand Name) ($pwd.Path + '\esrpclient\Input') ($pwd.Path + '\esrpclient\Output')
+          mkdir Output
+          ${{ github.workspace }}\devops\scripts\create_esrp_job.ps1 (ls .\Input\ | select -expand Name) ($pwd.Path + '\Input') ($pwd.Path + '\Output')
           cat Job.json
-          cd esrpclient
           .\EsrpClient.exe Sign -a "Config\Auth.json" -c "Config\Config.json" -i "Job.json" -o "Output\output.json" -p "Config\Policy.json" -l Verbose
 
       - name: Validate ESRP signing
