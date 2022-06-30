@@ -28,13 +28,6 @@ on:
         type: boolean
         required: false
         default: false
-    # secrets:
-    #   acr-client-id:
-    #     description: The username to login to the Azure Container Registry
-    #     required: true
-    #   acr-client-secret:
-    #     description: The password to login to the Azure Container Registry
-    #     required: true
 
 jobs:
   package:
