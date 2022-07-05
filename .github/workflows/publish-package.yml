@@ -1,0 +1,22 @@
+name: Publish Package
+
+on:
+  workflow_call:
+    inputs:
+      artifact:
+        description: The signed package artifacts to publish
+        type: string
+        required: false
+        default: package-signed
+
+jobs:
+  publish-package:
+    name: Publish package
+    runs-on: [self-hosted, 1ES.Pool=azure-osconfig-linux-pool]
+    environment: package-release
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: ${{ inputs.artifact }}
+          path: ${{ github.workspace }}/signed
+

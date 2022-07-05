@@ -1,0 +1,42 @@
+name: Nightly
+
+on: push
+  # schedule:
+  #   - cron: '0 8 * * *' # 08:00 UTC
+
+jobs:
+  check-changes:
+    name: Check changes
+    runs-on: ubuntu-latest
+    outputs:
+      publish: ${{ steps.check-last-commit.outputs.publish }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: main
+
+      - name: Check last commit time
+        id: check-last-commit
+        run: |
+          datetime=$(git show --format="%ci %cr" | head -n 1 | cut -d ' ' -f1-2)
+          # TODO: change this back to '1 day ago'
+          timeago='5 days ago'
+
+          commit_secs=$(date --date "$datetime" +'%s')    # For "now", use $(date +'%s')
+          ta_secs=$(date --date "$timeago" +'%s')
+
+          current_branch=$(git rev-parse --abbrev-ref HEAD)
+          echo "Last commit $current_branch $datetime"
+
+          if [ $ta_secs -lt $commit_secs ]
+          then
+            echo "::set-output name=publish::true"
+          else
+            echo "::set-output name=publish::false"
+          fi
+
+  publish:
+    name: Publish
+    needs: check-changes
+    if: ${{ needs.check-changes.outputs.publish == 'true' }}
+    uses: ./.github/workflows/publish-package.yml
